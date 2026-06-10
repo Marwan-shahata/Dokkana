@@ -1,11 +1,11 @@
 <main class="page">
   <section class="hero" aria-labelledby="hero-title">
     <header class="site-header">
-      <a class="brand" href="#" aria-label="Panto home">Panto</a>
+      <a class="brand" href="#" aria-label="Dokkana home">Dokkana</a>
 
       <nav class="nav" aria-label="Primary navigation">
         @for (item of navItems(); track item.label) {
-          <a href="#" class="nav-link">
+          <a href="#" (click)="$event.preventDefault()" class="nav-link">
             {{ item.label }}
             @if (item.hasMenu) {
               <span aria-hidden="true" class="chevron"></span>
@@ -14,18 +14,18 @@
         }
       </nav>
 
-      <button class="cart" type="button" aria-label="Open cart">
+      <button class="cart" type="button" aria-label="Open cart" (click)="toggleCart()">
         <span class="cart-bag" aria-hidden="true"></span>
-        <span class="cart-count">0</span>
+        <span class="cart-count">{{ cartCount() }}</span>
       </button>
     </header>
 
     <div class="hero-content">
-      <h1 id="hero-title">Make Your Interior More Minimalistic &amp; Modern</h1>
-      <p>Turn your room with panto into a lot more minimalist and modern with ease and speed</p>
+      <h1 id="hero-title">Discover Local Fashion &amp; Style</h1>
+      <p>Find the best fashion stores near you with Dokkana — curated styles, local brands, and everyday elegance</p>
 
-      <form class="search" aria-label="Search furniture">
-        <input type="search" placeholder="Search furniture" aria-label="Search furniture" />
+      <form class="search" aria-label="Search stores" (submit)="onSearch($event)">
+        <input type="search" placeholder="Search stores or products..." aria-label="Search stores or products" />
         <button type="submit" aria-label="Submit search"></button>
       </form>
     </div>
@@ -66,25 +66,25 @@
         <article class="feature">
           <h3>{{ feature.title }}</h3>
           <p>{{ feature.text }}</p>
-          <a href="#">More Info <span aria-hidden="true"></span></a>
+          <a href="#" (click)="$event.preventDefault()">More Info <span aria-hidden="true"></span></a>
         </article>
       }
     </div>
   </section>
 
   <section class="products" aria-labelledby="products-title">
-    <h2 id="products-title">Best Selling Product</h2>
+    <h2 id="products-title">Trending Now</h2>
     <div class="tabs" role="tablist" aria-label="Product categories">
       @for (tab of productTabs(); track tab) {
-        <button type="button" [class.active]="tab === 'Chair'">{{ tab }}</button>
+        <button type="button" [class.active]="tab === activeTab()" (click)="selectTab(tab)">{{ tab }}</button>
       }
     </div>
 
-    <button class="slider-arrow slider-left" type="button" aria-label="Previous products"></button>
-    <button class="slider-arrow slider-right" type="button" aria-label="Next products"></button>
+    <button class="slider-arrow slider-left" type="button" aria-label="Previous products" (click)="prevProducts()" [disabled]="!hasPrev()"></button>
+    <button class="slider-arrow slider-right" type="button" aria-label="Next products" (click)="nextProducts()" [disabled]="!hasNext()"></button>
 
     <div class="product-grid">
-      @for (product of products(); track product.name) {
+      @for (product of pagedProducts(); track product.name) {
         <article class="product-card">
           <div class="product-visual" [class]="product.visual">
             <span></span>
@@ -95,18 +95,18 @@
             <div class="stars" aria-label="5 out of 5 stars">★★★★★</div>
             <div class="product-bottom">
               <strong><sup>$</sup> {{ product.price }}</strong>
-              <button type="button" aria-label="Add {{ product.name }} to cart"></button>
+              <button type="button" aria-label="Add {{ product.name }} to cart" (click)="addToCart(product)"></button>
             </div>
           </div>
         </article>
       }
     </div>
 
-    <a class="view-all" href="#">View All <span aria-hidden="true"></span></a>
+    <a class="view-all" href="#" (click)="$event.preventDefault()">View All <span aria-hidden="true"></span></a>
   </section>
 
   <section class="split experience" aria-labelledby="experience-title">
-    <div class="split-visual visual-sofa" role="img" aria-label="Modern sofa interior placeholder">
+    <div class="split-visual visual-sofa" role="img" aria-label="Fashion store interior placeholder">
       <div class="back-card card-one"></div>
       <div class="back-card card-two"></div>
       <div class="room-photo">
@@ -118,28 +118,27 @@
 
     <div class="split-copy">
       <span>Experiences</span>
-      <h2 id="experience-title">We Provide You The Best Experience</h2>
+      <h2 id="experience-title">Shop Local, Shop Unique</h2>
       <p>
-        You don't have to worry about the result because all of these interiors are made by
-        people who are professionals in their fields with an elegant and lucurious style and with
-        premium quality materials
+        Discover fashion boutiques and local brands you won't find anywhere else. Every store on
+        Dokkana is handpicked to bring you quality, style, and authenticity
       </p>
-      <a href="#">More Info <span aria-hidden="true"></span></a>
+      <a href="#" (click)="$event.preventDefault()">More Info <span aria-hidden="true"></span></a>
     </div>
   </section>
 
   <section class="split materials" aria-labelledby="materials-title">
     <div class="split-copy">
-      <span>Materials</span>
-      <h2 id="materials-title">Very Serious Materials For Making Furniture</h2>
+      <span>Quality</span>
+      <h2 id="materials-title">Curated Stores, Confident Style</h2>
       <p>
-        Because panto was very serious about designing furniture for our environment, using a very
-        expensive and famous capital but at a relatively low price
+        Every store on Dokkana is vetted for quality and authenticity. Shop with confidence knowing
+        you're getting the best from trusted local sellers
       </p>
-      <a href="#">More Info <span aria-hidden="true"></span></a>
+      <a href="#" (click)="$event.preventDefault()">More Info <span aria-hidden="true"></span></a>
     </div>
 
-    <div class="material-collage" aria-label="Furniture material placeholders" role="img">
+    <div class="material-collage" aria-label="Fashion collection placeholders" role="img">
       <div class="mini-photo dining-one"></div>
       <div class="mini-photo dining-two"></div>
       <div class="large-photo dining-three"></div>
@@ -150,11 +149,11 @@
     <span>Testimonials</span>
     <h2 id="testimonials-title">Our Client Reviews</h2>
 
-    <button class="slider-arrow review-left" type="button" aria-label="Previous reviews"></button>
-    <button class="slider-arrow review-right" type="button" aria-label="Next reviews"></button>
+    <button class="slider-arrow review-left" type="button" aria-label="Previous reviews" (click)="prevReviews()" [disabled]="!hasPrevReview()"></button>
+    <button class="slider-arrow review-right" type="button" aria-label="Next reviews" (click)="nextReviews()" [disabled]="!hasNextReview()"></button>
 
     <div class="review-grid">
-      @for (review of testimonials(); track review.name) {
+      @for (review of pagedReviews(); track review.name) {
         <article class="review-card" [class]="review.theme">
           <div class="review-panel">
             <div class="avatar">{{ review.initials }}</div>
@@ -168,40 +167,72 @@
     </div>
   </section>
 
+  @if (cartOpen()) {
+    <div class="cart-overlay" (click)="toggleCart()"></div>
+    <aside class="cart-sidebar" aria-label="Shopping cart">
+      <div class="cart-header">
+        <h2>Your Cart</h2>
+        <button type="button" class="cart-close" (click)="toggleCart()">&times;</button>
+      </div>
+      @if (cart().length === 0) {
+        <p class="cart-empty">Your cart is empty.</p>
+      } @else {
+        <ul class="cart-items">
+          @for (item of cart(); track item.name) {
+            <li class="cart-item">
+              <div class="cart-item-info">
+                <strong>{{ item.name }}</strong>
+                <span>${{ item.price }} &times; {{ item.quantity }}</span>
+              </div>
+              <div class="cart-item-total">
+                <strong>${{ item.price * item.quantity }}</strong>
+                <button type="button" class="cart-remove" (click)="removeFromCart(item.name)">&times;</button>
+              </div>
+            </li>
+          }
+        </ul>
+        <div class="cart-footer">
+          <strong>Total: ${{ cartTotal() }}</strong>
+          <button type="button" class="cart-checkout">Checkout</button>
+        </div>
+      }
+    </aside>
+  }
+
   <footer class="footer">
     <div class="footer-brand">
-      <a class="brand dark" href="#">Panto</a>
+      <a class="brand dark" href="#">Dokkana</a>
       <p>
-        The advantage of hiring a workspace with us is that gives you comfortable service and all-
-        around facilities.
+        Your destination for local fashion. Discover unique stores, shop trending styles, and
+        support your community — all in one place.
       </p>
     </div>
 
     <div class="footer-col">
-      <h2>Services</h2>
-      <a href="#">Email Marketing</a>
-      <a href="#">Campaigns</a>
-      <a href="#">Branding</a>
+      <h2>Shop</h2>
+      <a href="#" (click)="$event.preventDefault()">Women</a>
+      <a href="#" (click)="$event.preventDefault()">Men</a>
+      <a href="#" (click)="$event.preventDefault()">Accessories</a>
     </div>
 
     <div class="footer-col">
-      <h2>Furniture</h2>
-      <a href="#">Beds</a>
-      <a href="#">Chair</a>
-      <a href="#">All</a>
+      <h2>Stores</h2>
+      <a href="#" (click)="$event.preventDefault()">Nearby</a>
+      <a href="#" (click)="$event.preventDefault()">Popular</a>
+      <a href="#" (click)="$event.preventDefault()">All</a>
     </div>
 
     <div class="footer-col social">
       <h2>Follow Us</h2>
-      <a href="#"><b>f</b> Facebook</a>
-      <a href="#"><b>t</b> Twitter</a>
-      <a href="#"><b>◎</b> Instagram</a>
+      <a href="#" (click)="$event.preventDefault()"><b>f</b> Facebook</a>
+      <a href="#" (click)="$event.preventDefault()"><b>t</b> Twitter</a>
+      <a href="#" (click)="$event.preventDefault()"><b>◎</b> Instagram</a>
     </div>
 
-    <p class="copyright">Copyright © 2021</p>
+    <p class="copyright">Copyright © 2026</p>
     <div class="legal">
-      <a href="#">Terms &amp; Conditions</a>
-      <a href="#">Privacy Policy</a>
+      <a href="#" (click)="$event.preventDefault()">Terms &amp; Conditions</a>
+      <a href="#" (click)="$event.preventDefault()">Privacy Policy</a>
     </div>
   </footer>
 </main>
