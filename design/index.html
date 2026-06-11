@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dokkana — دكانة · Design Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sand:oklch(0.968 0.013 78);
+  --cream:oklch(0.993 0.008 82);
+  --ink:oklch(0.255 0.022 48);
+  --ink-soft:oklch(0.46 0.020 52);
+  --clay:oklch(0.62 0.15 42);
+  --clay-deep:oklch(0.50 0.135 40);
+  --nile:oklch(0.61 0.085 195);
+  --nile-deep:oklch(0.45 0.075 198);
+  --ochre:oklch(0.80 0.115 82);
+  --hibiscus:oklch(0.56 0.17 22);
+  --border:oklch(0.89 0.016 72);
+  --drench:oklch(0.265 0.028 46);
+  --drench-soft:oklch(0.34 0.026 46);
+  --shadow:0 1px 2px oklch(0.30 0.03 50 / .05), 0 8px 24px oklch(0.30 0.03 50 / .07);
+  --shadow-lg:0 2px 6px oklch(0.30 0.03 50 / .07), 0 24px 60px oklch(0.30 0.03 50 / .12);
+  --ease:cubic-bezier(0.16,1,0.3,1);
+  --sans:"Plus Jakarta Sans",system-ui,sans-serif;
+  --serif:"Fraunces",Georgia,serif;
+  --ar:"IBM Plex Sans Arabic",sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--sans);
+  background:var(--sand);
+  color:var(--ink);
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+[dir="rtl"] body, [dir="rtl"]{font-family:var(--ar)}
+.ar-text{font-family:var(--ar)}
+::selection{background:var(--clay);color:var(--cream)}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+
+/* ---------- NAV ---------- */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:50;
+  transition:background .4s var(--ease),box-shadow .4s var(--ease),border-color .4s var(--ease);
+  border-bottom:1px solid transparent;
+}
+.nav.scrolled{background:oklch(0.968 0.013 78 / .85);backdrop-filter:blur(14px);border-bottom-color:var(--border)}
+.nav-in{display:flex;align-items:center;justify-content:space-between;height:74px}
+.brand{display:flex;align-items:baseline;gap:10px;font-weight:700;font-size:22px;letter-spacing:-.02em}
+.brand .dot{color:var(--clay)}
+.brand .ar{font-family:var(--ar);font-size:19px;color:var(--ink-soft);font-weight:600}
+.nav-links{display:flex;align-items:center;gap:34px}
+.nav-links a{font-size:14.5px;font-weight:500;color:var(--ink-soft);transition:color .25s}
+.nav-links a:hover{color:var(--ink)}
+.nav-cta{display:flex;align-items:center;gap:14px}
+.lang{
+  font-size:13px;font-weight:600;border:1px solid var(--border);border-radius:999px;
+  padding:7px 14px;background:var(--cream);cursor:pointer;color:var(--ink-soft);transition:all .25s var(--ease);
+}
+.lang:hover{border-color:var(--clay);color:var(--clay)}
+.btn{
+  font-family:var(--sans);font-size:14.5px;font-weight:600;cursor:pointer;border:none;
+  border-radius:999px;padding:11px 22px;transition:transform .35s var(--ease),box-shadow .35s var(--ease),background .25s;
+}
+.btn-primary{background:var(--ink);color:var(--sand)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.btn-clay{background:var(--clay);color:var(--cream)}
+.btn-clay:hover{transform:translateY(-2px);box-shadow:0 10px 30px oklch(0.62 0.15 42 / .35)}
+@media(max-width:780px){.nav-links{display:none}}
+
+/* ---------- HERO ---------- */
+.hero{padding:140px 0 70px;position:relative}
+.hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:54px;align-items:center}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:9px;font-size:12.5px;font-weight:600;
+  letter-spacing:.04em;text-transform:uppercase;color:var(--clay-deep);
+  background:oklch(0.62 0.15 42 / .10);padding:7px 14px;border-radius:999px;margin-bottom:26px;
+}
+.eyebrow .pulse{width:7px;height:7px;border-radius:50%;background:var(--nile);box-shadow:0 0 0 0 oklch(0.61 0.085 195 / .6);animation:pulse 2.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 oklch(0.61 0.085 195 / .5)}70%{box-shadow:0 0 0 10px oklch(0.61 0.085 195 / 0)}100%{box-shadow:0 0 0 0 oklch(0.61 0.085 195 / 0)}}
+h1.title{
+  font-family:var(--serif);font-weight:500;font-size:clamp(40px,5.6vw,68px);
+  line-height:1.02;letter-spacing:-.025em;margin-bottom:22px;
+}
+h1.title em{font-style:italic;color:var(--clay)}
+.lede{font-size:18.5px;color:var(--ink-soft);max-width:30ch;margin-bottom:30px}
+.hero-actions{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.ghost-link{font-size:15px;font-weight:600;color:var(--ink);display:inline-flex;align-items:center;gap:7px}
+.ghost-link .arr{transition:transform .35s var(--ease)}
+.ghost-link:hover .arr{transform:translateX(4px)}
+[dir="rtl"] .ghost-link:hover .arr{transform:translateX(-4px)}
+
+/* search demo card */
+.search-card{
+  background:var(--cream);border:1px solid var(--border);border-radius:24px;
+  padding:22px;box-shadow:var(--shadow-lg);position:relative;
+}
+.search-head{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.spark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--nile),var(--nile-deep));display:grid;place-items:center;flex-shrink:0}
+.search-head .t{font-size:13.5px;font-weight:600;color:var(--ink-soft)}
+.search-box{
+  display:flex;align-items:center;gap:12px;border:1.5px solid var(--border);border-radius:14px;
+  padding:14px 16px;background:var(--sand);transition:border-color .3s,box-shadow .3s;
+}
+.search-box.focus{border-color:var(--nile);box-shadow:0 0 0 4px oklch(0.61 0.085 195 / .14)}
+.search-box svg{flex-shrink:0;color:var(--ink-soft)}
+.search-box input{
+  border:none;background:none;outline:none;font-family:var(--sans);font-size:15.5px;
+  color:var(--ink);width:100%;
+}
+.search-box input::placeholder{color:oklch(0.58 0.02 55)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{
+  font-size:12.5px;font-weight:500;color:var(--ink-soft);background:var(--sand);
+  border:1px solid var(--border);border-radius:999px;padding:7px 13px;cursor:pointer;
+  transition:all .3s var(--ease);
+}
+.chip:hover{border-color:var(--clay);color:var(--clay);transform:translateY(-1px)}
+.chip.ar{font-family:var(--ar)}
+
+/* AI results */
+.results{margin-top:18px;display:none}
+.results.show{display:block}
+.thinking{display:flex;align-items:center;gap:10px;color:var(--ink-soft);font-size:13.5px;padding:6px 2px}
+.thinking .dots{display:inline-flex;gap:4px}
+.thinking .dots i{width:6px;height:6px;border-radius:50%;background:var(--nile);animation:bob 1.1s infinite}
+.thinking .dots i:nth-child(2){animation-delay:.15s}
+.thinking .dots i:nth-child(3){animation-delay:.3s}
+@keyframes bob{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-5px);opacity:1}}
+.res-list{display:flex;flex-direction:column;gap:10px}
+.res-item{
+  display:flex;align-items:center;gap:14px;padding:10px;border-radius:14px;background:var(--sand);
+  border:1px solid var(--border);opacity:0;transform:translateY(12px);
+}
+.res-item.in{animation:rise .6s var(--ease) forwards}
+@keyframes rise{to{opacity:1;transform:translateY(0)}}
+.res-thumb{width:54px;height:64px;border-radius:9px;flex-shrink:0;display:grid;place-items:center}
+.res-thumb svg{width:30px;height:30px;color:oklch(1 0 0 / .85)}
+.res-meta{flex:1;min-width:0}
+.res-meta .nm{font-weight:600;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.res-meta .st{font-size:12.5px;color:var(--ink-soft);display:flex;align-items:center;gap:5px}
+.res-price{font-family:var(--serif);font-size:17px;font-weight:600;color:var(--clay-deep);white-space:nowrap}
+.res-price small{font-size:11px;font-weight:500;color:var(--ink-soft)}
+
+/* ---------- MARQUEE ---------- */
+.marquee{padding:34px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-top:60px;overflow:hidden;position:relative}
+.marquee:before,.marquee:after{content:"";position:absolute;top:0;bottom:0;width:120px;z-index:2}
+.marquee:before{left:0;background:linear-gradient(90deg,var(--sand),transparent)}
+.marquee:after{right:0;background:linear-gradient(270deg,var(--sand),transparent)}
+.mq-track{display:flex;gap:54px;width:max-content;animation:scroll 32s linear infinite}
+.mq-item{font-family:var(--serif);font-size:21px;color:var(--ink-soft);display:flex;align-items:center;gap:54px;white-space:nowrap}
+.mq-item span{font-style:italic}
+.mq-item:before{content:"";width:6px;height:6px;border-radius:50%;background:var(--clay)}
+@keyframes scroll{to{transform:translateX(-50%)}}
+
+/* ---------- SECTIONS ---------- */
+section{position:relative}
+.sec-head{max-width:60ch;margin-bottom:46px}
+.sec-tag{font-size:12.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--clay-deep);margin-bottom:14px}
+.sec-title{font-family:var(--serif);font-weight:500;font-size:clamp(30px,4vw,46px);line-height:1.06;letter-spacing:-.02em}
+.sec-sub{font-size:17px;color:var(--ink-soft);margin-top:16px}
+
+.discover{padding:96px 0}
+/* editorial varied grid */
+.disc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.pcard{
+  background:var(--cream);border:1px solid var(--border);border-radius:18px;overflow:hidden;
+  cursor:pointer;transition:transform .5s var(--ease),box-shadow .5s var(--ease);position:relative;
+}
+.pcard:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg)}
+.pcard .img{height:230px;display:grid;place-items:center;position:relative;overflow:hidden}
+.pcard .img svg{width:74px;height:74px;color:oklch(1 0 0 / .9);transition:transform .6s var(--ease)}
+.pcard:hover .img svg{transform:scale(1.08) rotate(-3deg)}
+.pcard .tag{position:absolute;top:12px;left:12px;font-size:11px;font-weight:600;background:oklch(0.99 0.005 82 / .92);color:var(--ink);padding:5px 10px;border-radius:999px}
+[dir="rtl"] .pcard .tag{left:auto;right:12px}
+.pcard .heart{position:absolute;top:10px;right:12px;width:32px;height:32px;border-radius:50%;background:oklch(0.99 0.005 82 / .92);display:grid;place-items:center;color:var(--ink-soft);transition:color .3s,transform .3s}
+[dir="rtl"] .pcard .heart{right:auto;left:12px}
+.pcard .heart:hover{color:var(--hibiscus);transform:scale(1.12)}
+.pcard .body{padding:15px 16px 17px}
+.pcard .nm{font-weight:600;font-size:15px;margin-bottom:3px}
+.pcard .st{font-size:12.5px;color:var(--ink-soft);display:flex;align-items:center;gap:5px;margin-bottom:11px}
+.pcard .row{display:flex;align-items:center;justify-content:space-between}
+.pcard .pr{font-family:var(--serif);font-size:19px;font-weight:600;color:var(--clay-deep)}
+.pcard .pr small{font-size:11px;color:var(--ink-soft);font-weight:500}
+.swatches{display:flex;gap:5px}
+.sw{width:13px;height:13px;border-radius:50%;border:1px solid oklch(0.30 0.03 50 / .14)}
+.pcard.tall{grid-row:span 1}
+.pcard.feature{grid-column:span 2}
+.pcard.feature .img{height:230px}
+@media(max-width:900px){.disc-grid{grid-template-columns:repeat(2,1fr)}.pcard.feature{grid-column:span 2}}
+@media(max-width:560px){.disc-grid{grid-template-columns:1fr}.pcard.feature{grid-column:span 1}}
+
+/* ---------- COPILOT (drenched) ---------- */
+.copilot{background:var(--drench);color:var(--sand);padding:100px 0;margin-top:20px;position:relative;overflow:hidden}
+.copilot:before{content:"";position:absolute;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,oklch(0.62 0.15 42 / .18),transparent 70%);top:-180px;right:-120px}
+.cop-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:56px;align-items:center;position:relative}
+.copilot .sec-tag{color:var(--ochre)}
+.copilot .sec-title{color:var(--sand)}
+.copilot .sec-sub{color:oklch(0.82 0.02 70)}
+.cop-points{margin-top:28px;display:flex;flex-direction:column;gap:16px}
+.cop-point{display:flex;gap:13px;align-items:flex-start}
+.cop-point .ic{width:34px;height:34px;border-radius:10px;background:var(--drench-soft);display:grid;place-items:center;flex-shrink:0;color:var(--ochre)}
+.cop-point .tx b{font-weight:600;font-size:15.5px}
+.cop-point .tx p{font-size:14px;color:oklch(0.80 0.02 70);margin-top:2px}
+
+/* chat mock */
+.chat{background:oklch(0.30 0.025 46);border:1px solid oklch(0.42 0.025 46);border-radius:22px;padding:22px;box-shadow:var(--shadow-lg)}
+.chat-top{display:flex;align-items:center;gap:11px;padding-bottom:16px;border-bottom:1px solid oklch(0.42 0.025 46);margin-bottom:18px}
+.chat-top .av{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--clay),var(--clay-deep));display:grid;place-items:center}
+.chat-top .nm{font-weight:600;font-size:14.5px}
+.chat-top .role{font-size:12px;color:oklch(0.74 0.02 70)}
+.chat-top .live{margin-left:auto;font-size:11px;font-weight:600;color:var(--nile);display:flex;align-items:center;gap:6px}
+[dir="rtl"] .chat-top .live{margin-left:0;margin-right:auto}
+.chat-top .live i{width:6px;height:6px;border-radius:50%;background:var(--nile);animation:pulse2 2s infinite}
+@keyframes pulse2{0%,100%{opacity:.4}50%{opacity:1}}
+.bubble{max-width:88%;padding:13px 16px;border-radius:16px;font-size:14.5px;margin-bottom:12px;line-height:1.5}
+.bubble.user{background:var(--drench-soft);margin-left:auto;border-bottom-right-radius:5px}
+[dir="rtl"] .bubble.user{margin-left:0;margin-right:auto;border-bottom-right-radius:16px;border-bottom-left-radius:5px}
+.bubble.ai{background:oklch(0.36 0.026 46);border-bottom-left-radius:5px}
+[dir="rtl"] .bubble.ai{border-bottom-left-radius:16px;border-bottom-right-radius:5px}
+.bubble.ai .lead{color:oklch(0.88 0.02 70)}
+.minichart{display:flex;align-items:flex-end;gap:9px;height:78px;margin:14px 0 6px}
+.bar{flex:1;border-radius:6px 6px 0 0;background:linear-gradient(var(--ochre),var(--clay));position:relative;height:0;transition:height 1.1s var(--ease)}
+.bar span{position:absolute;top:-19px;left:50%;transform:translateX(-50%);font-size:10.5px;color:oklch(0.80 0.02 70);white-space:nowrap}
+.bar small{position:absolute;bottom:-19px;left:50%;transform:translateX(-50%);font-size:10.5px;color:oklch(0.72 0.02 70);white-space:nowrap}
+.restock{display:flex;align-items:center;gap:9px;font-size:13px;background:oklch(0.56 0.17 22 / .16);color:oklch(0.86 0.06 30);border-radius:11px;padding:10px 13px;margin-top:8px}
+
+/* ---------- STEPS ---------- */
+.steps{padding:100px 0}
+.step-row{display:grid;grid-template-columns:80px 1fr;gap:26px;align-items:start;padding:30px 0;border-top:1px solid var(--border)}
+.step-row:last-child{border-bottom:1px solid var(--border)}
+.step-num{font-family:var(--serif);font-size:46px;font-weight:500;color:var(--clay);line-height:1}
+.step-row h3{font-size:23px;font-weight:600;letter-spacing:-.01em;margin-bottom:8px}
+.step-row p{font-size:16px;color:var(--ink-soft);max-width:58ch}
+.step-row .meta{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+.pill{font-size:12.5px;font-weight:500;color:var(--ink-soft);background:var(--cream);border:1px solid var(--border);border-radius:999px;padding:6px 12px}
+
+/* ---------- CTA ---------- */
+.cta{padding:30px 0 100px}
+.cta-card{background:var(--clay);color:var(--cream);border-radius:30px;padding:72px 56px;text-align:center;position:relative;overflow:hidden}
+.cta-card:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 80% 120%,oklch(0.50 0.135 40 / .6),transparent 60%)}
+.cta-card h2{font-family:var(--serif);font-weight:500;font-size:clamp(30px,4.5vw,50px);line-height:1.05;position:relative;margin-bottom:18px}
+.cta-card p{font-size:18px;color:oklch(0.95 0.03 60);position:relative;margin-bottom:30px;max-width:46ch;margin-inline:auto}
+.cta-card .btn-light{background:var(--cream);color:var(--clay-deep);position:relative}
+.cta-card .btn-light:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+
+/* ---------- FOOTER ---------- */
+footer{padding:60px 0 40px;border-top:1px solid var(--border)}
+.foot-grid{display:flex;justify-content:space-between;align-items:flex-start;gap:40px;flex-wrap:wrap}
+.foot-brand{max-width:30ch}
+.foot-brand p{font-size:14px;color:var(--ink-soft);margin-top:12px}
+.foot-cols{display:flex;gap:60px;flex-wrap:wrap}
+.foot-col h4{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-soft);margin-bottom:14px}
+.foot-col a{display:block;font-size:14.5px;color:var(--ink);margin-bottom:9px;transition:color .25s}
+.foot-col a:hover{color:var(--clay)}
+.foot-bot{margin-top:46px;padding-top:24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:13px;color:var(--ink-soft);flex-wrap:wrap;gap:10px}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .9s var(--ease),transform .9s var(--ease)}
+.reveal.vis{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
+@media(max-width:860px){.hero-grid,.cop-grid{grid-template-columns:1fr;gap:40px}.lede{max-width:none}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav" id="nav">
+  <div class="wrap nav-in">
+    <div class="brand">Dokkana<span class="dot">.</span><span class="ar">دكانة</span></div>
+    <div class="nav-links">
+      <a href="#discover" data-en="Discover" data-ar="اكتشف">Discover</a>
+      <a href="#copilot" data-en="For Stores" data-ar="للمتاجر">For Stores</a>
+      <a href="#how" data-en="How it works" data-ar="كيف يعمل">How it works</a>
+    </div>
+    <div class="nav-cta">
+      <button class="lang" id="langBtn">العربية</button>
+      <button class="btn btn-primary" data-en="Open Dokkana" data-ar="ادخل دكانة">Open Dokkana</button>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow"><span class="pulse"></span><span data-en="AI fashion discovery · Egypt" data-ar="اكتشاف أزياء بالذكاء الاصطناعي · مصر">AI fashion discovery · Egypt</span></span>
+      <h1 class="title" data-en="Find what you're looking for in <em>local</em> stores." data-ar="لاقي اللي بتدوّر عليه في محلات <em>جنبك</em>.">Find what you're looking for in <em>local</em> stores.</h1>
+      <p class="lede" data-en="Describe it in your own words, Arabic or English. Dokkana searches real inventory from shops near you." data-ar="اوصفه بكلامك، عربي أو إنجليزي. دكانة بتدوّر في بضاعة محلات قريبة منك فعلاً.">Describe it in your own words, Arabic or English. Dokkana searches real inventory from shops near you.</p>
+      <div class="hero-actions">
+        <button class="btn btn-clay" data-en="Start searching" data-ar="ابدأ البحث">Start searching</button>
+        <a class="ghost-link" href="#copilot"><span data-en="I own a store" data-ar="أنا صاحب محل">I own a store</span><span class="arr">&rarr;</span></a>
+      </div>
+    </div>
+
+    <!-- interactive search demo -->
+    <div class="search-card reveal">
+      <div class="search-head">
+        <div class="spark">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9L12 3z" fill="white"/><circle cx="18.5" cy="4.5" r="1.6" fill="white"/></svg>
+        </div>
+        <div class="t" data-en="Dokkana Assistant" data-ar="مساعد دكانة">Dokkana Assistant</div>
+      </div>
+      <div class="search-box" id="sbox">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="sinput" type="text" autocomplete="off" />
+      </div>
+      <div class="chips" id="chips">
+        <span class="chip" data-q="linen">linen shirt for summer</span>
+        <span class="chip ar" data-q="dress" dir="rtl">فستان صيفي كتان</span>
+        <span class="chip" data-q="sneaker">white minimal sneakers</span>
+        <span class="chip ar" data-q="bag" dir="rtl">شنطة جلد بني</span>
+      </div>
+      <div class="results" id="results"></div>
+    </div>
+  </div>
+
+  <!-- marquee -->
+  <div class="marquee reveal">
+    <div class="mq-track" id="mq"></div>
+  </div>
+</header>
+
+<!-- DISCOVER -->
+<section class="discover" id="discover">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-tag" data-en="The shopper side" data-ar="جانب المتسوّق">The shopper side</div>
+      <h2 class="sec-title" data-en="Real products. Real shops. Real prices." data-ar="منتجات حقيقية. محلات حقيقية. أسعار حقيقية.">Real products. Real shops. Real prices.</h2>
+      <p class="sec-sub" data-en="No more guessing from blurry social posts. Every item links to a store you can actually visit." data-ar="بلاش تخمين من بوستات مش واضحة. كل منتج بيوصلك بمحل تقدر تزوره فعلاً.">No more guessing from blurry social posts. Every item links to a store you can actually visit.</p>
+    </div>
+    <div class="disc-grid" id="grid"></div>
+  </div>
+</section>
+
+<!-- COPILOT -->
+<section class="copilot" id="copilot">
+  <div class="wrap cop-grid">
+    <div class="reveal">
+      <div class="sec-tag" data-en="The store owner side" data-ar="جانب صاحب المحل">The store owner side</div>
+      <h2 class="sec-title" data-en="Ask your shop a question." data-ar="اسأل محلك أي سؤال.">Ask your shop a question.</h2>
+      <p class="sec-sub" data-en="The Business Copilot turns your sales and stock into plain answers. No spreadsheets, no analytics degree." data-ar="مساعد الأعمال بيحوّل مبيعاتك ومخزونك لإجابات بسيطة. من غير شيتات ولا تعقيد.">The Business Copilot turns your sales and stock into plain answers. No spreadsheets, no analytics degree.</p>
+      <div class="cop-points">
+        <div class="cop-point">
+          <div class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></div>
+          <div class="tx"><b data-en="Know your best sellers" data-ar="اعرف أكثر منتجاتك مبيعاً">Know your best sellers</b><p data-en="Ask what sold most this week, in any language." data-ar="اسأل إيه اللي اتباع أكتر الأسبوع ده، بأي لغة.">Ask what sold most this week, in any language.</p></div>
+        </div>
+        <div class="cop-point">
+          <div class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8-4-8 4 8 4 8-4z"/><path d="M4 7v10l8 4 8-4V7"/></svg></div>
+          <div class="tx"><b data-en="Never run out" data-ar="ما تخلصش بضاعة">Never run out</b><p data-en="Get restock alerts before items hit zero." data-ar="تنبيهات إعادة التخزين قبل ما المنتج يخلص.">Get restock alerts before items hit zero.</p></div>
+        </div>
+        <div class="cop-point">
+          <div class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+          <div class="tx"><b data-en="Catalog that answers back" data-ar="كتالوج بيرد عليك">Catalog that answers back</b><p data-en="Upload a PDF, shoppers ask it questions." data-ar="ارفع PDF، والزباين يسألوه أسئلة.">Upload a PDF, shoppers ask it questions.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat reveal" id="chat">
+      <div class="chat-top">
+        <div class="av"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9L12 3z" fill="oklch(0.99 0.005 82)"/></svg></div>
+        <div><div class="nm">Business Copilot</div><div class="role" data-en="Boutique El Nour" data-ar="بوتيك النور">Boutique El Nour</div></div>
+        <div class="live"><i></i><span data-en="live" data-ar="مباشر">live</span></div>
+      </div>
+      <div class="bubble user" data-en="What sold most this month?" data-ar="إيه أكتر حاجة اتباعت الشهر ده؟">What sold most this month?</div>
+      <div class="bubble ai">
+        <span class="lead" data-en="Your top three this month, by units sold:" data-ar="أعلى ٣ منتجات الشهر ده، بعدد القطع:">Your top three this month, by units sold:</span>
+        <div class="minichart" id="chart">
+          <div class="bar" data-h="62"><span>48</span><small data-en="Linen shirts" data-ar="قمصان كتان">Linen shirts</small></div>
+          <div class="bar" data-h="100"><span>71</span><small data-en="Summer dresses" data-ar="فساتين صيفي">Summer dresses</small></div>
+          <div class="bar" data-h="44"><span>33</span><small data-en="Sneakers" data-ar="كوتشيات">Sneakers</small></div>
+        </div>
+      </div>
+      <div class="bubble ai">
+        <div class="restock"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg><span data-en="Summer dresses are low: 6 left. Reorder soon." data-ar="فساتين الصيف قربت تخلص: فاضل ٦. اطلب قريب.">Summer dresses are low: 6 left. Reorder soon.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="steps" id="how">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-tag" data-en="How it works" data-ar="كيف يعمل">How it works</div>
+      <h2 class="sec-title" data-en="From a sentence to a shop visit." data-ar="من جملة لزيارة محل.">From a sentence to a shop visit.</h2>
+    </div>
+    <div class="step-row reveal">
+      <div class="step-num">01</div>
+      <div>
+        <h3 data-en="Describe it your way" data-ar="اوصفه بطريقتك">Describe it your way</h3>
+        <p data-en="Type or speak what you want in Egyptian Arabic or English. The AI reads style, color, and budget, then turns it into a real search." data-ar="اكتب أو قول اللي عايزه بالعامية المصرية أو الإنجليزي. الذكاء الاصطناعي بيفهم الستايل واللون والميزانية، ويحوّلها لبحث حقيقي.">Type or speak what you want in Egyptian Arabic or English. The AI reads style, color, and budget, then turns it into a real search.</p>
+        <div class="meta"><span class="pill" data-en="Natural language" data-ar="لغة طبيعية">Natural language</span><span class="pill" data-en="Photo search" data-ar="بحث بالصورة">Photo search</span><span class="pill" data-en="Voice (Arabic)" data-ar="صوت (عربي)">Voice (Arabic)</span></div>
+      </div>
+    </div>
+    <div class="step-row reveal">
+      <div class="step-num">02</div>
+      <div>
+        <h3 data-en="See what's actually in stock" data-ar="شوف اللي موجود فعلاً">See what's actually in stock</h3>
+        <p data-en="Results come from real catalogs of nearby stores, with live prices and availability. Ask the catalog follow-up questions before you go." data-ar="النتائج من كتالوجات حقيقية لمحلات قريبة، بأسعار وتوافر مباشر. اسأل الكتالوج أسئلة قبل ما تروح.">Results come from real catalogs of nearby stores, with live prices and availability. Ask the catalog follow-up questions before you go.</p>
+        <div class="meta"><span class="pill" data-en="Live inventory" data-ar="مخزون مباشر">Live inventory</span><span class="pill" data-en="Ask the catalog" data-ar="اسأل الكتالوج">Ask the catalog</span></div>
+      </div>
+    </div>
+    <div class="step-row reveal">
+      <div class="step-num">03</div>
+      <div>
+        <h3 data-en="Reserve, chat, or visit" data-ar="احجز، كلّم، أو زور">Reserve, chat, or visit</h3>
+        <p data-en="Reserve an item for in-store pickup, message the shop on WhatsApp, or just get directions. You buy the way Egypt actually shops." data-ar="احجز منتج للاستلام من المحل، كلّم المحل على واتساب، أو خد الاتجاهات. تشتري بالطريقة اللي مصر بتتسوق بيها فعلاً.">Reserve an item for in-store pickup, message the shop on WhatsApp, or just get directions. You buy the way Egypt actually shops.</p>
+        <div class="meta"><span class="pill" data-en="Reserve & pickup" data-ar="احجز واستلم">Reserve & pickup</span><span class="pill" data-en="WhatsApp the store" data-ar="واتساب المحل">WhatsApp the store</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <div class="wrap">
+    <div class="cta-card reveal">
+      <h2 data-en="Your neighborhood, now searchable." data-ar="منطقتك، بقت تتبحث.">Your neighborhood, now searchable.</h2>
+      <p data-en="Whether you're hunting for the perfect piece or running the shop that has it, Dokkana brings local fashion online." data-ar="سواء بتدوّر على القطعة المثالية أو بتدير المحل اللي عنده، دكانة بتنقل أزياء الحي للأونلاين.">Whether you're hunting for the perfect piece or running the shop that has it, Dokkana brings local fashion online.</p>
+      <button class="btn btn-light" data-en="Open Dokkana" data-ar="ادخل دكانة">Open Dokkana</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <div class="brand">Dokkana<span class="dot">.</span><span class="ar">دكانة</span></div>
+        <p data-en="AI-powered discovery for shoppers. AI-powered insights for store owners." data-ar="اكتشاف بالذكاء الاصطناعي للمتسوقين. رؤى ذكية لأصحاب المحلات.">AI-powered discovery for shoppers. AI-powered insights for store owners.</p>
+      </div>
+      <div class="foot-cols">
+        <div class="foot-col">
+          <h4 data-en="Shoppers" data-ar="المتسوقون">Shoppers</h4>
+          <a data-en="Search" data-ar="بحث">Search</a>
+          <a data-en="Stores near you" data-ar="محلات قريبة">Stores near you</a>
+          <a data-en="Visual search" data-ar="بحث بالصورة">Visual search</a>
+        </div>
+        <div class="foot-col">
+          <h4 data-en="Stores" data-ar="المحلات">Stores</h4>
+          <a data-en="Sell on Dokkana" data-ar="بيع على دكانة">Sell on Dokkana</a>
+          <a data-en="Business Copilot" data-ar="مساعد الأعمال">Business Copilot</a>
+          <a data-en="Pricing" data-ar="الأسعار">Pricing</a>
+        </div>
+        <div class="foot-col">
+          <h4 data-en="Project" data-ar="المشروع">Project</h4>
+          <a>ITI Graduation 2026</a>
+          <a data-en="The team" data-ar="الفريق">The team</a>
+        </div>
+      </div>
+    </div>
+    <div class="foot-bot">
+      <span>© 2026 Dokkana — دكانة</span>
+      <span data-en="Built for ITI .NET Full Stack Track" data-ar="مصنوع لمسار ITI .NET Full Stack">Built for ITI .NET Full Stack Track</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ---------- garment icons ---------- */
+const ICON = {
+  dress:'<path d="M9 2h6l-1 4 3 4-2 2 2 9H7l2-9-2-2 3-4-1-4z"/>',
+  shirt:'<path d="M6 3l3-1 3 2 3-2 3 1 2 5-3 1v9H7v-9L4 8z"/>',
+  sneaker:'<path d="M2 16l2-7 4 2 3-3 2 1v3l7 2c1 .3 2 1 2 2v2H2z"/>',
+  bag:'<path d="M5 8h14l-1 13H6L5 8z"/><path d="M9 8V6a3 3 0 016 0v2"/>',
+  jacket:'<path d="M8 2l4 3 4-3 4 4-3 3v11h-5V9h-2v15H5V12L2 9z"/>'
+};
+function svg(type,cls){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round">'+ICON[type]+'</svg>';}
+
+/* ---------- catalog ---------- */
+const TINTS=[
+ 'oklch(0.62 0.15 42)','oklch(0.61 0.085 195)','oklch(0.80 0.115 82)',
+ 'oklch(0.56 0.17 22)','oklch(0.50 0.135 40)','oklch(0.45 0.075 198)'];
+const PRODUCTS=[
+ {nm:'Linen Button Shirt',ar:'قميص كتان',st:'Boutique El Nour',pr:'320',ic:'shirt',cat:'Shirts',tint:0,sw:['oklch(0.92 0.04 80)','oklch(0.7 0.08 200)']},
+ {nm:'Summer Wrap Dress',ar:'فستان صيفي',st:'Layla Atelier',pr:'480',ic:'dress',cat:'Dresses',tint:3,sw:['oklch(0.56 0.17 22)','oklch(0.8 0.115 82)']},
+ {nm:'Minimal Court Sneakers',ar:'كوتشي أبيض',st:'Cairo Kicks',pr:'650',ic:'sneaker',cat:'Shoes',tint:1,sw:['oklch(0.95 0.01 80)','oklch(0.3 0.02 50)']},
+ {nm:'Leather Tote',ar:'شنطة جلد',st:'Zahra Goods',pr:'540',ic:'bag',cat:'Bags',tint:4,sw:['oklch(0.5 0.08 50)','oklch(0.3 0.04 50)']},
+ {nm:'Oversized Denim Jacket',ar:'جاكيت جينز',st:'Maadi Denim',pr:'720',ic:'jacket',cat:'Outerwear',tint:5,sw:['oklch(0.55 0.06 250)','oklch(0.4 0.05 250)']},
+ {nm:'Cotton Day Dress',ar:'فستان قطن',st:'Layla Atelier',pr:'390',ic:'dress',cat:'Dresses',tint:2,sw:['oklch(0.8 0.115 82)','oklch(0.62 0.15 42)']},
+ {nm:'Linen Blend Trousers',ar:'بنطلون كتان',st:'Boutique El Nour',pr:'410',ic:'shirt',cat:'Bottoms',tint:1,sw:['oklch(0.85 0.03 90)','oklch(0.5 0.05 60)']},
+ {nm:'Suede Crossbody',ar:'شنطة شامواه',st:'Zahra Goods',pr:'470',ic:'bag',cat:'Bags',tint:0,sw:['oklch(0.62 0.15 42)','oklch(0.4 0.04 50)']}
+];
+
+/* ---------- build discover grid ---------- */
+const grid=document.getElementById('grid');
+PRODUCTS.forEach((p,i)=>{
+  const feature=(i===1)?'feature':'';
+  const tint=TINTS[p.tint];
+  const el=document.createElement('div');
+  el.className='pcard reveal '+feature;
+  el.innerHTML=`
+    <div class="img" style="background:linear-gradient(150deg,${tint},color-mix(in oklch, ${tint} 70%, black))">
+      <span class="tag" data-en="${p.cat}" data-ar="${p.cat}">${p.cat}</span>
+      <span class="heart"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.5-9.5-8.5C.8 9.6 2 6 5.3 6c1.9 0 3 1 3.7 2 .7-1 1.8-2 3.7-2 3.3 0 4.5 3.6 2.8 6.5C19 16.5 12 21 12 21z"/></svg></span>
+      ${svg(p.ic)}
+    </div>
+    <div class="body">
+      <div class="nm">${p.nm}</div>
+      <div class="st"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>${p.st}</div>
+      <div class="row">
+        <div class="pr">${p.pr} <small>EGP</small></div>
+        <div class="swatches">${p.sw.map(c=>`<span class="sw" style="background:${c}"></span>`).join('')}</div>
+      </div>
+    </div>`;
+  grid.appendChild(el);
+});
+
+/* ---------- marquee ---------- */
+const STORES=['Boutique El Nour','Layla Atelier','Cairo Kicks','Zahra Goods','Maadi Denim','Heliopolis Threads','Nile Knitwear','Zamalek Vintage'];
+const mq=document.getElementById('mq');
+const line=STORES.map(s=>`<div class="mq-item"><span>${s}</span></div>`).join('');
+mq.innerHTML=line+line;
+
+/* ---------- interactive AI search ---------- */
+const sbox=document.getElementById('sbox'),sinput=document.getElementById('sinput'),results=document.getElementById('results');
+const RESULTSETS={
+  linen:[0,6,1],dress:[1,5,1],sneaker:[2,4,2],bag:[3,7,0],
+  default:[1,2,3]
+};
+const PH={en:['linen shirt for summer...','white minimal sneakers...','a brown leather bag under 600...'],ar:['قميص كتان للصيف...','كوتشي أبيض رياضي...','شنطة جلد بني تحت ٦٠٠...']};
+let phI=0,chI=0,typing=true,phTimer;
+function typeLoop(){
+  const arr=PH[STATE.lang]; const word=arr[phI];
+  if(typing){sinput.placeholder=word.slice(0,chI++);if(chI>word.length){typing=false;phTimer=setTimeout(typeLoop,1600);return;}}
+  else{sinput.placeholder=word.slice(0,chI--);if(chI<0){typing=true;phI=(phI+1)%arr.length;chI=0;}}
+  phTimer=setTimeout(typeLoop,typing?70:34);
+}
+sbox.addEventListener('click',()=>sinput.focus());
+sinput.addEventListener('focus',()=>{sbox.classList.add('focus');clearTimeout(phTimer);sinput.placeholder='';});
+sinput.addEventListener('blur',()=>{sbox.classList.remove('focus');if(!sinput.value){chI=0;typing=true;typeLoop();}});
+
+function runSearch(key,text){
+  sinput.value=text;
+  results.className='results show';
+  results.innerHTML='<div class="thinking"><span data-en="Searching nearby stores" data-ar="بيدوّر في محلات قريبة">'+(STATE.lang==='ar'?'بيدوّر في محلات قريبة':'Searching nearby stores')+'</span><span class="dots"><i></i><i></i><i></i></span></div>';
+  const set=RESULTSETS[key]||RESULTSETS.default;
+  setTimeout(()=>{
+    results.innerHTML='<div class="res-list"></div>';
+    const list=results.querySelector('.res-list');
+    set.forEach((idx,n)=>{
+      const p=PRODUCTS[idx],tint=TINTS[p.tint];
+      const item=document.createElement('div');
+      item.className='res-item';
+      item.style.animationDelay=(n*0.11)+'s';
+      const nm=STATE.lang==='ar'?p.ar:p.nm;
+      item.innerHTML=`
+        <div class="res-thumb" style="background:linear-gradient(150deg,${tint},color-mix(in oklch, ${tint} 70%, black))">${svg(p.ic)}</div>
+        <div class="res-meta"><div class="nm">${nm}</div><div class="st"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>${p.st}</div></div>
+        <div class="res-price">${p.pr} <small>EGP</small></div>`;
+      list.appendChild(item);
+      requestAnimationFrame(()=>item.classList.add('in'));
+    });
+  },1050);
+}
+document.getElementById('chips').addEventListener('click',e=>{
+  const c=e.target.closest('.chip');if(!c)return;
+  runSearch(c.dataset.q,c.textContent);
+});
+sinput.addEventListener('keydown',e=>{if(e.key==='Enter'&&sinput.value.trim()){runSearch('default',sinput.value.trim());sinput.blur();}});
+
+/* ---------- reveal on scroll ---------- */
+const io=new IntersectionObserver((es)=>{es.forEach(en=>{if(en.isIntersecting){en.target.classList.add('vis');io.unobserve(en.target);}});},{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+/* ---------- chart animation ---------- */
+const chartIO=new IntersectionObserver((es)=>{es.forEach(en=>{if(en.isIntersecting){en.target.querySelectorAll('.bar').forEach(b=>{b.style.height=b.dataset.h+'%';});chartIO.unobserve(en.target);}});},{threshold:.4});
+chartIO.observe(document.getElementById('chart'));
+
+/* ---------- nav scroll ---------- */
+const nav=document.getElementById('nav');
+addEventListener('scroll',()=>{nav.classList.toggle('scrolled',scrollY>20);});
+
+/* ---------- language toggle ---------- */
+const STATE={lang:'en'};
+const langBtn=document.getElementById('langBtn');
+function applyLang(){
+  const ar=STATE.lang==='ar';
+  document.documentElement.lang=ar?'ar':'en';
+  document.documentElement.dir=ar?'rtl':'ltr';
+  langBtn.textContent=ar?'English':'العربية';
+  document.querySelectorAll('[data-en]').forEach(el=>{
+    const v=ar?el.getAttribute('data-ar'):el.getAttribute('data-en');
+    if(v!=null)el.innerHTML=v;
+  });
+  // reset search placeholder cycle
+  clearTimeout(phTimer);phI=0;chI=0;typing=true;
+  if(document.activeElement!==sinput){sinput.placeholder='';typeLoop();}
+}
+langBtn.addEventListener('click',()=>{STATE.lang=STATE.lang==='en'?'ar':'en';applyLang();});
+
+/* start */
+typeLoop();
+</script>
+</body>
+</html>
