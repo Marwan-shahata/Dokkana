@@ -1,6 +1,8 @@
 using System.Text;
 using Dokkana.BLL.AI.Agent;
+using Dokkana.BLL.AI.Plugins;
 using Dokkana.BLL.Managers;
+using Dokkana.BLL.Managers.Products;
 using Dokkana.DAL.Data;
 using Dokkana.DAL.Models;
 using Dokkana.DAL.UnitOfWork;
@@ -8,6 +10,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.SemanticKernel;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -43,6 +46,7 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
 
 // ── JWT authentication ───────────────────────────────────────────────────────
 var jwtKey = builder.Configuration["Jwt:SecretKey"] ?? "CHANGE_ME_DEV_ONLY_SECRET_KEY_32CHARS_MIN";
+
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -74,6 +78,40 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IStoreManager, StoreManager>();
 builder.Services.AddScoped<IAuthManager, AuthManager>();
+builder.Services.AddScoped<IProductManager, ProductManager>();
+
+// ── AI: OpenAI + Semantic Kernel ─────────────────────────────────────────────
+var openAiApiKey = builder.Configuration["OpenAI:ApiKey"];
+var chatModel = builder.Configuration["OpenAI:ChatModel"] ?? "gpt-4o-mini";
+
+if (string.IsNullOrWhiteSpace(openAiApiKey))
+{
+    throw new InvalidOperationException("OpenAI:ApiKey is missing. Add it using dotnet user-secrets.");
+}
+
+// Registers OpenAI chat completion service in Dependency Injection.
+builder.Services.AddOpenAIChatCompletion(
+    modelId: chatModel,
+    apiKey: openAiApiKey);
+
+// Register AI plugins.
+builder.Services.AddScoped<ProductSearchPlugin>();
+
+// Register Semantic Kernel and attach plugins to it.
+builder.Services.AddScoped<Kernel>(serviceProvider =>
+{
+    var kernel = new Kernel(serviceProvider);
+
+    var productSearchPlugin = serviceProvider.GetRequiredService<ProductSearchPlugin>();
+
+    kernel.Plugins.AddFromObject(
+        productSearchPlugin,
+        pluginName: "ProductSearch");
+
+    return kernel;
+});
+
+// Register main Dokkana AI agent.
 builder.Services.AddScoped<IDokkanaAgent, DokkanaAgent>();
 
 var app = builder.Build();
@@ -82,11 +120,22 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
+
     foreach (var role in new[] { "Admin", "StoreOwner", "Shopper" })
     {
         if (!await roleManager.RoleExistsAsync(role))
+        {
             await roleManager.CreateAsync(new ApplicationRole(role));
+        }
     }
+
+    // ── Seed demo fashion data for AI search testing ───────────────────────────
+    var dbSeeder = new DbSeeder(
+        scope.ServiceProvider.GetRequiredService<AppDbContext>(),
+        scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>(),
+        scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>());
+
+    await dbSeeder.SeedAsync();
 }
 
 // ── HTTP pipeline ────────────────────────────────────────────────────────────
@@ -97,12 +146,16 @@ if (app.Environment.IsDevelopment())
     app.MapGet("/", () => Results.Redirect("/scalar/v1"));
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment() || app.Urls.Any(u => u.StartsWith("https")))
+    app.UseHttpsRedirection();
+
 app.UseStaticFiles();
+
 app.UseCors("AllowAngular");
+
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
 
+app.MapControllers();
 
 app.Run();
