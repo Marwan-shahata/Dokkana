@@ -18,21 +18,42 @@ namespace Dokkana.API.Controllers
             _storeManager = storeManager;
         }
 
-        // Public: browse stores.
+        // Admin: browse all stores (including unapproved).
         [HttpGet]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> GetAll()
         {
             var stores = await _storeManager.GetAllAsync();
             return Ok(GeneralResult<IEnumerable<StoreDTO>>.Ok(stores));
         }
 
-        [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetById(int id)
+        // Public: browse only approved stores.
+        [HttpGet("approved")]
+        public async Task<IActionResult> GetApproved()
         {
-            var store = await _storeManager.GetByIdAsync(id);
+            var stores = await _storeManager.GetApprovedAsync();
+            return Ok(GeneralResult<IEnumerable<StoreDTO>>.Ok(stores));
+        }
+
+        // StoreOwner: get their own store.
+        [HttpGet("my")]
+        [Authorize(Policy = "StoreOwnerOnly")]
+        public async Task<IActionResult> GetMy()
+        {
+            var ownerId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var store = await _storeManager.GetByOwnerAsync(ownerId);
             return store is null
                 ? NotFound(GeneralResult.Fail(Errors.NotFound))
                 : Ok(GeneralResult<StoreDTO>.Ok(store));
+        }
+
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var store = await _storeManager.GetDetailsAsync(id);
+            return store is null
+                ? NotFound(GeneralResult.Fail(Errors.NotFound))
+                : Ok(GeneralResult<StoreDetailsDTO>.Ok(store));
         }
 
         // A store owner creates their store (pending admin approval).
@@ -44,6 +65,28 @@ namespace Dokkana.API.Controllers
             var created = await _storeManager.CreateAsync(dto, ownerId);
             return CreatedAtAction(nameof(GetById), new { id = created.Id },
                 GeneralResult<StoreDTO>.Ok(created));
+        }
+
+        // StoreOwner: update their own store.
+        [HttpPut("{id:int}")]
+        [Authorize(Policy = "StoreOwnerOnly")]
+        public async Task<IActionResult> Update(int id, StoreUpdateDTO dto)
+        {
+            var ok = await _storeManager.UpdateAsync(id, dto);
+            return ok
+                ? Ok(GeneralResult.Ok("Store updated."))
+                : NotFound(GeneralResult.Fail(Errors.NotFound));
+        }
+
+        // Admin: delete a store.
+        [HttpDelete("{id:int}")]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var ok = await _storeManager.DeleteAsync(id);
+            return ok
+                ? Ok(GeneralResult.Ok("Store deleted."))
+                : NotFound(GeneralResult.Fail(Errors.NotFound));
         }
 
         // Admin approves a store so it becomes visible to shoppers.
@@ -58,3 +101,4 @@ namespace Dokkana.API.Controllers
         }
     }
 }
+
