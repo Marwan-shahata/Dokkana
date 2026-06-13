@@ -1,44 +1,59 @@
-<section class="signup-bg">
-  <div class="signup-wrap">
-    <!-- Brand mark -->
-    <div class="brand-row">
-      <div class="brand-mark">
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-          <line x1="3" y1="6" x2="21" y2="6" />
-          <path d="M16 10a4 4 0 0 1-8 0" />
-        </svg>
+<div
+  class="modal-backdrop"
+  [class.is-open]="isOpen"
+  (click)="onBackdropClick($event)"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Create account"
+>
+  <div class="modal-panel" [class.is-open]="isOpen">
+    <button class="modal-close" type="button" (click)="close()" aria-label="Close">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <line x1="18" y1="6" x2="6" y2="18" />
+        <line x1="6" y1="6" x2="18" y2="18" />
+      </svg>
+    </button>
+
+    <!-- Static header — never scrolls -->
+    <div class="modal-header-area">
+      <div class="modal-brand">
+        <div class="brand-mark">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <path d="M16 10a4 4 0 0 1-8 0" />
+          </svg>
+        </div>
+        <div class="brand-text"><b>Dokkana</b><span class="ar">دكانة</span></div>
       </div>
-      <div class="brand-text">
-        <b>Dokkana</b>
-        <span class="ar">دكانة</span>
+      <div class="modal-head">
+        <div class="eyebrow"><i></i> Join the community</div>
+        <h2 class="modal-title">Create your account</h2>
+        <p class="modal-sub">
+          Discover local fashion or share your store with Egypt's style community.
+        </p>
       </div>
     </div>
 
-    <!-- Card -->
-    <div class="signup-card">
-      <!-- Eyebrow -->
-      <div class="eyebrow">
-        <i></i>
-        Join the community
-      </div>
-
-      <h1 class="card-title">Create your account</h1>
-      <p class="card-sub">
-        Discover local fashion or share your store with Egypt's style community.
-      </p>
-
+    <!-- Scrollable body -->
+    <div class="modal-body">
       <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate autocomplete="off">
-        <!-- Full Name -->
         <div class="field" [class.has-error]="fieldInvalid('fullName')">
-          <label for="fullName">Full Name</label>
+          <label for="su-name">Full Name</label>
           <div class="input-wrap">
             <svg
               class="input-icon"
@@ -53,7 +68,7 @@
               <circle cx="12" cy="7" r="4" />
             </svg>
             <input
-              id="fullName"
+              id="su-name"
               type="text"
               formControlName="fullName"
               placeholder="Your full name"
@@ -77,14 +92,13 @@
               >Full name is required.</ng-container
             >
             <ng-container *ngIf="f['fullName'].errors?.['minlength']"
-              >Name must be at least 2 characters.</ng-container
+              >At least 2 characters.</ng-container
             >
           </div>
         </div>
 
-        <!-- Email -->
         <div class="field" [class.has-error]="fieldInvalid('email')">
-          <label for="email">Email Address</label>
+          <label for="su-email">Email Address</label>
           <div class="input-wrap">
             <svg
               class="input-icon"
@@ -99,7 +113,7 @@
               <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
             </svg>
             <input
-              id="email"
+              id="su-email"
               type="email"
               formControlName="email"
               placeholder="you@example.com"
@@ -119,18 +133,13 @@
               <line x1="12" y1="8" x2="12" y2="12" />
               <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
-            <ng-container *ngIf="f['email'].errors?.['required']"
-              >Email address is required.</ng-container
-            >
-            <ng-container *ngIf="f['email'].errors?.['email']"
-              >Please enter a valid email address.</ng-container
-            >
+            <ng-container *ngIf="f['email'].errors?.['required']">Email is required.</ng-container>
+            <ng-container *ngIf="f['email'].errors?.['email']">Enter a valid email.</ng-container>
           </div>
         </div>
 
-        <!-- Username -->
         <div class="field" [class.has-error]="fieldInvalid('username')">
-          <label for="username">Username</label>
+          <label for="su-username">Username</label>
           <div class="input-wrap">
             <svg
               class="input-icon"
@@ -145,7 +154,7 @@
               <path d="M3 21a9 9 0 0 1 18 0" />
             </svg>
             <input
-              id="username"
+              id="su-username"
               type="text"
               formControlName="username"
               placeholder="your_username"
@@ -169,17 +178,16 @@
               >Username is required.</ng-container
             >
             <ng-container *ngIf="f['username'].errors?.['minlength']"
-              >Username must be at least 3 characters.</ng-container
+              >At least 3 characters.</ng-container
             >
             <ng-container *ngIf="f['username'].errors?.['pattern']"
-              >Only letters, numbers and underscores allowed.</ng-container
+              >Letters, numbers and underscores only.</ng-container
             >
           </div>
         </div>
 
-        <!-- Password -->
         <div class="field" [class.has-error]="fieldInvalid('password')">
-          <label for="password">Password</label>
+          <label for="su-password">Password</label>
           <div class="input-wrap">
             <svg
               class="input-icon"
@@ -194,7 +202,7 @@
               <path d="M7 11V7a5 5 0 0 1 10 0v4" />
             </svg>
             <input
-              id="password"
+              id="su-password"
               [type]="showPassword ? 'text' : 'password'"
               formControlName="password"
               placeholder="At least 8 characters"
@@ -204,7 +212,7 @@
               type="button"
               class="toggle-vis"
               (click)="togglePassword()"
-              [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+              [attr.aria-label]="showPassword ? 'Hide' : 'Show'"
             >
               <svg
                 *ngIf="!showPassword"
@@ -234,10 +242,7 @@
               </svg>
             </button>
           </div>
-          <div
-            class="password-hint"
-            *ngIf="!fieldInvalid('password') || f['password'].errors?.['weakPassword']"
-          >
+          <div class="password-hint" *ngIf="!fieldInvalid('password')">
             Uppercase · Lowercase · Number · 8+ characters
           </div>
           <div class="error-msg" *ngIf="fieldInvalid('password')">
@@ -257,14 +262,13 @@
               >Password is required.</ng-container
             >
             <ng-container *ngIf="f['password'].errors?.['weakPassword']"
-              >Password must have uppercase, lowercase, a number, and 8+ chars.</ng-container
+              >Must have uppercase, lowercase, a number &amp; 8+ chars.</ng-container
             >
           </div>
         </div>
 
-        <!-- Confirm Password -->
         <div class="field" [class.has-error]="confirmInvalid()">
-          <label for="confirmPassword">Confirm Password</label>
+          <label for="su-confirm">Confirm Password</label>
           <div class="input-wrap">
             <svg
               class="input-icon"
@@ -278,7 +282,7 @@
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
             <input
-              id="confirmPassword"
+              id="su-confirm"
               [type]="showConfirm ? 'text' : 'password'"
               formControlName="confirmPassword"
               placeholder="Re-enter your password"
@@ -288,7 +292,7 @@
               type="button"
               class="toggle-vis"
               (click)="toggleConfirm()"
-              [attr.aria-label]="showConfirm ? 'Hide password' : 'Show password'"
+              [attr.aria-label]="showConfirm ? 'Hide' : 'Show'"
             >
               <svg
                 *ngIf="!showConfirm"
@@ -343,21 +347,16 @@
           </div>
         </div>
 
-        <!-- Role Selection -->
         <div class="field role-field">
           <label>I am joining as a</label>
           <div class="role-grid">
-            <!-- Shopper -->
             <button
               type="button"
               class="role-card"
               [class.selected]="form.get('role')?.value === 'shopper'"
               (click)="selectRole('shopper')"
-              aria-label="Join as Shopper"
             >
-              <div class="role-radio">
-                <div class="role-radio-dot"></div>
-              </div>
+              <div class="role-radio"><div class="role-radio-dot"></div></div>
               <div class="role-icon shopper-icon">
                 <svg
                   viewBox="0 0 24 24"
@@ -374,21 +373,16 @@
               </div>
               <div class="role-info">
                 <span class="role-name">Shopper</span>
-                <span class="role-desc">Browse &amp; discover local fashion</span>
+                <span class="role-desc">Browse &amp; discover</span>
               </div>
             </button>
-
-            <!-- Store -->
             <button
               type="button"
               class="role-card"
               [class.selected]="form.get('role')?.value === 'store'"
               (click)="selectRole('store')"
-              aria-label="Join as Store"
             >
-              <div class="role-radio">
-                <div class="role-radio-dot"></div>
-              </div>
+              <div class="role-radio"><div class="role-radio-dot"></div></div>
               <div class="role-icon store-icon">
                 <svg
                   viewBox="0 0 24 24"
@@ -404,19 +398,13 @@
               </div>
               <div class="role-info">
                 <span class="role-name">Store</span>
-                <span class="role-desc">List &amp; sell your products</span>
+                <span class="role-desc">List &amp; sell products</span>
               </div>
             </button>
           </div>
         </div>
 
-        <!-- Submit -->
-        <button
-          type="submit"
-          class="submit-btn"
-          [disabled]="form.invalid && submitted"
-          [class.btn-disabled]="submitted && form.invalid"
-        >
+        <button type="submit" class="submit-btn">
           <span>Create Account</span>
           <svg
             viewBox="0 0 24 24"
@@ -431,18 +419,12 @@
           </svg>
         </button>
       </form>
-
-      <!-- Sign in link -->
-      <p class="signin-link">
-        Already have an account?
-        <a href="/sign-in">Sign In</a>
-      </p>
     </div>
 
-    <!-- Decorative footer text -->
-    <p class="legal-note">
-      By creating an account you agree to our
-      <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+    <!-- Static footer — never scrolls -->
+    <p class="modal-footer-link">
+      Already have an account?
+      <button type="button" class="switch-btn" (click)="goToLogin.emit()">Sign In</button>
     </p>
   </div>
-</section>
+</div>

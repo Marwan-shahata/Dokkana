@@ -1,16 +1,4 @@
-// import { Component } from '@angular/core';
-
-// @Component({
-//   selector: 'app-sign-up',
-//   imports: [],
-//   templateUrl: './sign-up.html',
-//   styleUrl: './sign-up.css',
-// })
-// export class SignUp {
-
-// }
-
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   AbstractControl,
@@ -34,15 +22,6 @@ export function passwordStrengthValidator(): ValidatorFn {
   };
 }
 
-export function confirmPasswordValidator(passwordField: string): ValidatorFn {
-  return (control: AbstractControl): ValidationErrors | null => {
-    const group = control.parent as FormGroup;
-    if (!group) return null;
-    const password = group.get(passwordField)?.value;
-    return control.value === password ? null : { passwordMismatch: true };
-  };
-}
-
 @Component({
   selector: 'app-sign-up',
   standalone: true,
@@ -51,6 +30,10 @@ export function confirmPasswordValidator(passwordField: string): ValidatorFn {
   styleUrls: ['./sign-up.css'],
 })
 export class SignUpComponent implements OnInit {
+  @Input() isOpen = false;
+  @Output() closeModal = new EventEmitter<void>();
+  @Output() goToLogin = new EventEmitter<void>();
+
   form!: FormGroup;
   showPassword = false;
   showConfirm = false;
@@ -103,10 +86,19 @@ export class SignUpComponent implements OnInit {
     this.form.get('role')?.setValue(role);
   }
 
-  onSubmit(): void {
-    this.submitted = true;
-    if (this.form.invalid) return;
-    console.log('Sign-up payload:', this.form.value);
+  close(): void {
+    this.closeModal.emit();
+  }
+
+  onBackdropClick(event: MouseEvent): void {
+    if ((event.target as HTMLElement).classList.contains('modal-backdrop')) {
+      this.close();
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  onEsc(): void {
+    if (this.isOpen) this.close();
   }
 
   togglePassword(): void {
@@ -114,5 +106,11 @@ export class SignUpComponent implements OnInit {
   }
   toggleConfirm(): void {
     this.showConfirm = !this.showConfirm;
+  }
+
+  onSubmit(): void {
+    this.submitted = true;
+    if (this.form.invalid) return;
+    console.log('Sign-up payload:', this.form.value);
   }
 }
