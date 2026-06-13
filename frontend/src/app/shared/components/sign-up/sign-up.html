@@ -38,7 +38,10 @@
             <path d="M16 10a4 4 0 0 1-8 0" />
           </svg>
         </div>
-        <div class="brand-text"><b>Dokkana</b><span class="ar">دكانة</span></div>
+        <div class="brand-text">
+          <b>Dokkana</b>
+          <span class="ar">دكانة</span>
+        </div>
       </div>
       <div class="modal-head">
         <div class="eyebrow"><i></i> Join the community</div>
@@ -52,51 +55,94 @@
     <!-- Scrollable body -->
     <div class="modal-body">
       <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate autocomplete="off">
-        <div class="field" [class.has-error]="fieldInvalid('fullName')">
-          <label for="su-name">Full Name</label>
-          <div class="input-wrap">
-            <svg
-              class="input-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-            <input
-              id="su-name"
-              type="text"
-              formControlName="fullName"
-              placeholder="Your full name"
-              autocomplete="name"
-            />
+        <!-- First Name + Last Name -->
+        <div class="name-row">
+          <div class="field" [class.has-error]="fieldInvalid('firstName')">
+            <label for="su-fname">First Name</label>
+            <div class="input-wrap">
+              <svg
+                class="input-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              <input
+                id="su-fname"
+                type="text"
+                formControlName="firstName"
+                placeholder="Ahmed"
+                autocomplete="given-name"
+              />
+            </div>
+            <div class="error-msg" *ngIf="fieldInvalid('firstName')">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              <ng-container *ngIf="f['firstName'].errors?.['required']">Required.</ng-container>
+              <ng-container *ngIf="f['firstName'].errors?.['maxlength']"
+                >Max 50 chars.</ng-container
+              >
+            </div>
           </div>
-          <div class="error-msg" *ngIf="fieldInvalid('fullName')">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
-            <ng-container *ngIf="f['fullName'].errors?.['required']"
-              >Full name is required.</ng-container
-            >
-            <ng-container *ngIf="f['fullName'].errors?.['minlength']"
-              >At least 2 characters.</ng-container
-            >
+
+          <div class="field" [class.has-error]="fieldInvalid('lastName')">
+            <label for="su-lname">Last Name</label>
+            <div class="input-wrap">
+              <svg
+                class="input-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              <input
+                id="su-lname"
+                type="text"
+                formControlName="lastName"
+                placeholder="Hassan"
+                autocomplete="family-name"
+              />
+            </div>
+            <div class="error-msg" *ngIf="fieldInvalid('lastName')">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              <ng-container *ngIf="f['lastName'].errors?.['required']">Required.</ng-container>
+              <ng-container *ngIf="f['lastName'].errors?.['maxlength']">Max 50 chars.</ng-container>
+            </div>
           </div>
         </div>
 
+        <!-- Email -->
         <div class="field" [class.has-error]="fieldInvalid('email')">
           <label for="su-email">Email Address</label>
           <div class="input-wrap">
@@ -134,58 +180,16 @@
               <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
             <ng-container *ngIf="f['email'].errors?.['required']">Email is required.</ng-container>
-            <ng-container *ngIf="f['email'].errors?.['email']">Enter a valid email.</ng-container>
-          </div>
-        </div>
-
-        <div class="field" [class.has-error]="fieldInvalid('username')">
-          <label for="su-username">Username</label>
-          <div class="input-wrap">
-            <svg
-              class="input-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+            <ng-container *ngIf="f['email'].errors?.['email']"
+              >Enter a valid email address.</ng-container
             >
-              <circle cx="12" cy="8" r="5" />
-              <path d="M3 21a9 9 0 0 1 18 0" />
-            </svg>
-            <input
-              id="su-username"
-              type="text"
-              formControlName="username"
-              placeholder="your_username"
-              autocomplete="username"
-            />
-          </div>
-          <div class="error-msg" *ngIf="fieldInvalid('username')">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
-            <ng-container *ngIf="f['username'].errors?.['required']"
-              >Username is required.</ng-container
-            >
-            <ng-container *ngIf="f['username'].errors?.['minlength']"
-              >At least 3 characters.</ng-container
-            >
-            <ng-container *ngIf="f['username'].errors?.['pattern']"
-              >Letters, numbers and underscores only.</ng-container
+            <ng-container *ngIf="f['email'].errors?.['maxlength']"
+              >Max 100 characters.</ng-container
             >
           </div>
         </div>
 
+        <!-- Password -->
         <div class="field" [class.has-error]="fieldInvalid('password')">
           <label for="su-password">Password</label>
           <div class="input-wrap">
@@ -205,7 +209,7 @@
               id="su-password"
               [type]="showPassword ? 'text' : 'password'"
               formControlName="password"
-              placeholder="At least 8 characters"
+              placeholder="At least 4 characters"
               autocomplete="new-password"
             />
             <button
@@ -242,9 +246,6 @@
               </svg>
             </button>
           </div>
-          <div class="password-hint" *ngIf="!fieldInvalid('password')">
-            Uppercase · Lowercase · Number · 8+ characters
-          </div>
           <div class="error-msg" *ngIf="fieldInvalid('password')">
             <svg
               viewBox="0 0 24 24"
@@ -261,12 +262,16 @@
             <ng-container *ngIf="f['password'].errors?.['required']"
               >Password is required.</ng-container
             >
-            <ng-container *ngIf="f['password'].errors?.['weakPassword']"
-              >Must have uppercase, lowercase, a number &amp; 8+ chars.</ng-container
+            <ng-container *ngIf="f['password'].errors?.['minlength']"
+              >At least 4 characters.</ng-container
+            >
+            <ng-container *ngIf="f['password'].errors?.['maxlength']"
+              >Max 100 characters.</ng-container
             >
           </div>
         </div>
 
+        <!-- Confirm Password -->
         <div class="field" [class.has-error]="confirmInvalid()">
           <label for="su-confirm">Confirm Password</label>
           <div class="input-wrap">
@@ -347,6 +352,54 @@
           </div>
         </div>
 
+        <!-- Phone Number (optional) -->
+        <div class="field" [class.has-error]="fieldInvalid('phoneNumber')">
+          <label for="su-phone">
+            Phone Number
+            <span class="optional-tag">optional</span>
+          </label>
+          <div class="input-wrap">
+            <svg
+              class="input-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.85a16 16 0 0 0 6.29 6.29l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"
+              />
+            </svg>
+            <input
+              id="su-phone"
+              type="tel"
+              formControlName="phoneNumber"
+              placeholder="+20 1xx xxx xxxx"
+              autocomplete="tel"
+            />
+          </div>
+          <div class="error-msg" *ngIf="fieldInvalid('phoneNumber')">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <ng-container *ngIf="f['phoneNumber'].errors?.['pattern']"
+              >Enter a valid phone number.</ng-container
+            >
+          </div>
+        </div>
+
+        <!-- Role Selection -->
         <div class="field role-field">
           <label>I am joining as a</label>
           <div class="role-grid">
@@ -355,6 +408,7 @@
               class="role-card"
               [class.selected]="form.get('role')?.value === 'shopper'"
               (click)="selectRole('shopper')"
+              aria-label="Join as Shopper"
             >
               <div class="role-radio"><div class="role-radio-dot"></div></div>
               <div class="role-icon shopper-icon">
@@ -381,6 +435,7 @@
               class="role-card"
               [class.selected]="form.get('role')?.value === 'store'"
               (click)="selectRole('store')"
+              aria-label="Join as Store"
             >
               <div class="role-radio"><div class="role-radio-dot"></div></div>
               <div class="role-icon store-icon">
@@ -404,6 +459,57 @@
           </div>
         </div>
 
+        <!-- Store Name — only shown when role = store -->
+        <div
+          class="field store-name-field"
+          *ngIf="isStore"
+          [class.has-error]="fieldInvalid('storeName')"
+        >
+          <label for="su-store">
+            Store Name
+            <span class="optional-tag">optional</span>
+          </label>
+          <div class="input-wrap">
+            <svg
+              class="input-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+            <input
+              id="su-store"
+              type="text"
+              formControlName="storeName"
+              placeholder="Your store name"
+              autocomplete="organization"
+            />
+          </div>
+          <div class="error-msg" *ngIf="fieldInvalid('storeName')">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <ng-container *ngIf="f['storeName'].errors?.['maxlength']"
+              >Max 100 characters.</ng-container
+            >
+          </div>
+        </div>
+
+        <!-- Submit -->
         <button type="submit" class="submit-btn">
           <span>Create Account</span>
           <svg
