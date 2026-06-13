@@ -10,18 +10,6 @@ import {
   Validators,
 } from '@angular/forms';
 
-export function passwordStrengthValidator(): ValidatorFn {
-  return (control: AbstractControl): ValidationErrors | null => {
-    const value: string = control.value ?? '';
-    if (!value) return null;
-    const hasUpper = /[A-Z]/.test(value);
-    const hasLower = /[a-z]/.test(value);
-    const hasDigit = /\d/.test(value);
-    const hasMin = value.length >= 8;
-    return hasUpper && hasLower && hasDigit && hasMin ? null : { weakPassword: true };
-  };
-}
-
 @Component({
   selector: 'app-sign-up',
   standalone: true,
@@ -44,21 +32,20 @@ export class SignUpComponent implements OnInit {
   ngOnInit(): void {
     this.form = this.fb.group(
       {
-        fullName: ['', [Validators.required, Validators.minLength(2)]],
-        email: ['', [Validators.required, Validators.email]],
-        username: [
-          '',
-          [Validators.required, Validators.minLength(3), Validators.pattern(/^[a-zA-Z0-9_]+$/)],
-        ],
-        password: ['', [Validators.required, passwordStrengthValidator()]],
+        firstName: ['', [Validators.required, Validators.maxLength(50)]],
+        lastName: ['', [Validators.required, Validators.maxLength(50)]],
+        email: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
+        password: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(100)]],
         confirmPassword: ['', [Validators.required]],
+        phoneNumber: ['', [Validators.pattern(/^[+]?[\d\s\-().]{7,20}$/)]],
+        storeName: ['', [Validators.maxLength(100)]],
         role: ['shopper', [Validators.required]],
       },
-      { validators: this.matchPasswordsGroup() },
+      { validators: this.matchPasswords() },
     );
   }
 
-  private matchPasswordsGroup(): ValidatorFn {
+  private matchPasswords(): ValidatorFn {
     return (group: AbstractControl): ValidationErrors | null => {
       const pw = group.get('password')?.value;
       const cpw = group.get('confirmPassword')?.value;
@@ -69,6 +56,10 @@ export class SignUpComponent implements OnInit {
 
   get f() {
     return this.form.controls;
+  }
+
+  get isStore(): boolean {
+    return this.form.get('role')?.value === 'store';
   }
 
   fieldInvalid(name: string): boolean {
@@ -84,6 +75,9 @@ export class SignUpComponent implements OnInit {
 
   selectRole(role: 'shopper' | 'store'): void {
     this.form.get('role')?.setValue(role);
+    if (role === 'shopper') {
+      this.form.get('storeName')?.reset('');
+    }
   }
 
   close(): void {
@@ -111,6 +105,11 @@ export class SignUpComponent implements OnInit {
   onSubmit(): void {
     this.submitted = true;
     if (this.form.invalid) return;
-    console.log('Sign-up payload:', this.form.value);
+
+    const { role, confirmPassword, ...dto } = this.form.value;
+    if (role === 'shopper') delete dto.storeName;
+    if (!dto.phoneNumber) delete dto.phoneNumber;
+
+    console.log('RegisterDTO:', dto);
   }
 }
