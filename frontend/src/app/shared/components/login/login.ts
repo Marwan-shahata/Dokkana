@@ -1,16 +1,4 @@
-// // import { Component } from '@angular/core';
-
-// // @Component({
-// //   selector: 'app-login',
-// //   imports: [],
-// //   templateUrl: './login.html',
-// //   styleUrl: './login.css',
-// // })
-// // export class Login {
-
-// // }
-
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -21,7 +9,11 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
   templateUrl: './login.html',
   styleUrls: ['./login.css'],
 })
-export class LoginComponent implements OnInit, OnDestroy {
+export class LoginComponent implements OnInit {
+  @Input() isOpen = false;
+  @Output() closeModal = new EventEmitter<void>();
+  @Output() goToSignUp = new EventEmitter<void>();
+
   form!: FormGroup;
   showPassword = false;
   submitted = false;
@@ -37,8 +29,6 @@ export class LoginComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy(): void {}
-
   get f() {
     return this.form.controls;
   }
@@ -48,6 +38,21 @@ export class LoginComponent implements OnInit, OnDestroy {
     return !!(ctrl && ctrl.invalid && (ctrl.dirty || ctrl.touched || this.submitted));
   }
 
+  close(): void {
+    this.closeModal.emit();
+  }
+
+  onBackdropClick(event: MouseEvent): void {
+    if ((event.target as HTMLElement).classList.contains('modal-backdrop')) {
+      this.close();
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  onEsc(): void {
+    if (this.isOpen) this.close();
+  }
+
   togglePassword(): void {
     this.showPassword = !this.showPassword;
   }
@@ -55,9 +60,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   onSubmit(): void {
     this.submitted = true;
     if (this.form.invalid) return;
-
     this.isLoading = true;
-    // Simulate async login — replace with your auth service call
     setTimeout(() => {
       this.isLoading = false;
       console.log('Login payload:', this.form.value);

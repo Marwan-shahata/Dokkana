@@ -1,0 +1,92 @@
+<!-- ─── Demo landing surface ─────────────────────────────── -->
+<div class="demo-page">
+  <!-- Fake nav -->
+  <header class="demo-nav">
+    <div class="nav-brand">
+      <div class="brand-mark">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <path d="M16 10a4 4 0 0 1-8 0" />
+        </svg>
+      </div>
+      <span>Dokkana</span>
+    </div>
+
+    <nav class="nav-links">
+      <a href="#">Home</a>
+      <a href="#">Shop</a>
+      <a href="#">Stores</a>
+    </nav>
+
+    <div class="nav-actions">
+      <button class="btn-ghost" (click)="openLogin()">Sign In</button>
+      <button class="btn-primary" (click)="openSignUp()">Sign Up</button>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="demo-hero">
+    <div class="hero-content">
+      <div class="hero-eyebrow"><i></i> Egypt's local fashion discovery</div>
+      <h1>Find the <em>style</em><br />that fits you</h1>
+      <p>Browse hundreds of local boutiques and independent designers — all in one place.</p>
+      <div class="hero-cta">
+        <button class="btn-primary btn-lg" (click)="openSignUp()">
+          Get started free
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M5 12h14" />
+            <path d="m12 5 7 7-7 7" />
+          </svg>
+        </button>
+        <button class="btn-ghost btn-lg" (click)="openLogin()">Sign In</button>
+      </div>
+    </div>
+
+    <!-- Decorative cards -->
+    <div class="hero-cards" aria-hidden="true">
+      <div class="hero-card hc1">
+        <div class="hc-img"></div>
+        <div class="hc-body">
+          <span class="hc-cat">Linen Collection</span>
+          <span class="hc-name">Summer Abaya</span>
+          <span class="hc-price">EGP 1,200</span>
+        </div>
+      </div>
+      <div class="hero-card hc2">
+        <div class="hc-img hc-img2"></div>
+        <div class="hc-body">
+          <span class="hc-cat">Handmade</span>
+          <span class="hc-name">Beaded Collar</span>
+          <span class="hc-price">EGP 450</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ─── Modals ─────────────────────────────────────────── -->
+<app-login
+  [isOpen]="showLogin"
+  (closeModal)="closeLogin()"
+  (goToSignUp)="switchToSignUp()"
+></app-login>
+<app-sign-up
+  [isOpen]="showSignUp"
+  (closeModal)="closeSignUp()"
+  (goToLogin)="switchToLogin()"
+></app-sign-up>
