@@ -1,0 +1,504 @@
+/* ============================================================
+   Dokkana — Navbar Component Styles
+   Luxury e-commerce UI · Pure Angular + CSS · No libraries
+   ============================================================ */
+
+/* ── Design Tokens ──────────────────────────────────────────── */
+:host {
+  --sand:         oklch(0.963 0.018 78);
+  --cream:        oklch(0.991 0.01 82);
+  --linen:        oklch(0.942 0.02 72);
+  --porcelain:    oklch(0.982 0.006 88);
+  --ink:          oklch(0.205 0.024 48);
+  --ink-soft:     #594b43;
+  --clay:         #da6733;
+  --clay-deep:    oklch(0.505 0.14 39);
+  --ochre:        oklch(0.765 0.12 78);
+  --border:       oklch(0.855 0.018 72);
+  --on-drench:    oklch(0.935 0.012 78);
+  --on-drench-soft: oklch(0.78 0.02 70);
+  --paper:        oklch(0.991 0.01 82);
+  --shadow:       0 1px 1px oklch(0.28 0.03 48 / 0.04),
+                  0 16px 40px oklch(0.28 0.03 48 / 0.1);
+  --ease:         cubic-bezier(0.16, 1, 0.3, 1);
+  --sans:         "Manrope", system-ui, sans-serif;
+  --ar:           "IBM Plex Sans Arabic", sans-serif;
+
+  display: block;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+/* ── Dark mode token overrides ──────────────────────────────── */
+:host(.dark),
+:host-context([data-theme="dark"]) {
+  --sand:      oklch(0.172 0.012 60);
+  --cream:     oklch(0.225 0.014 60);
+  --linen:     oklch(0.27 0.015 60);
+  --porcelain: oklch(0.255 0.013 60);
+  --ink:       oklch(0.935 0.012 78);
+  --ink-soft:  oklch(0.735 0.016 76);
+  --border:    oklch(0.33 0.012 60);
+}
+
+/* ── Wrapper utility ────────────────────────────────────────── */
+.wrap {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 28px;
+}
+
+/* ── Nav shell ──────────────────────────────────────────────── */
+.nav {
+  background: oklch(0.963 0.018 78 / 0.82);
+  backdrop-filter: blur(18px) saturate(1.12);
+  -webkit-backdrop-filter: blur(18px) saturate(1.12);
+  border-bottom: 1px solid transparent;
+  transition:
+    border-color 0.3s ease,
+    background 0.3s ease,
+    box-shadow 0.3s ease;
+  font-family: var(--sans);
+}
+
+.nav.scrolled {
+  border-bottom-color: var(--border);
+  box-shadow: var(--shadow);
+}
+
+/* Dark mode nav background */
+:host(.dark) .nav,
+:host-context([data-theme="dark"]) .nav {
+  background: oklch(0.172 0.012 60 / 0.88);
+}
+
+/* ── Inner row ──────────────────────────────────────────────── */
+.nav-in {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  height: 72px;
+}
+
+/* ── Brand ──────────────────────────────────────────────────── */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  background: none;
+  border: none;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 0;
+  transition:
+    color 0.3s ease,
+    transform 0.25s var(--ease);
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.brand:hover {
+  transform: translateY(-1px);
+}
+
+.brand-mark {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(140deg, var(--clay), var(--clay-deep));
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  box-shadow: 0 10px 24px oklch(0.62 0.15 42 / 0.34);
+  transition: box-shadow 0.25s ease, transform 0.25s var(--ease);
+}
+
+.brand:hover .brand-mark {
+  box-shadow: 0 14px 32px oklch(0.62 0.15 42 / 0.44);
+  transform: translateY(-1px);
+}
+
+.brand-mark svg {
+  width: 21px;
+  height: 21px;
+  display: block;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.05;
+}
+
+[dir="rtl"] .brand-text {
+  align-items: flex-end;
+}
+
+.brand-text b {
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: -0.01em;
+  color: inherit;
+  display: block;
+}
+
+.brand-text .ar {
+  font-size: 11px;
+  color: var(--ink-soft);
+  font-weight: 600;
+  font-family: var(--ar);
+  letter-spacing: 0;
+  margin-top: 1px;
+  transition: color 0.3s ease;
+  display: block;
+}
+
+/* ── Primary nav links ──────────────────────────────────────── */
+.nav-links {
+  display: flex;
+  gap: 28px;
+  align-items: center;
+}
+
+.nav-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-family: inherit;
+  position: relative;
+  transition: color 0.25s ease;
+  white-space: nowrap;
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  background: var(--clay);
+  border-radius: 2px;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.28s var(--ease);
+}
+
+[dir="rtl"] .nav-link::after {
+  transform-origin: center;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: var(--clay);
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+  transform: scaleX(1);
+}
+
+/* ── Spacer ─────────────────────────────────────────────────── */
+.spacer {
+  flex: 1;
+  min-width: 8px;
+}
+
+/* ── View Switcher ──────────────────────────────────────────── */
+.viewswitch {
+  display: flex;
+  gap: 3px;
+  background: oklch(1 0 0 / 0.14);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.32);
+  flex-shrink: 0;
+}
+
+:host-context([data-theme="dark"]) .viewswitch {
+  background: oklch(1 0 0 / 0.06);
+}
+
+.vbtn {
+  border: none;
+  background: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    transform 0.2s var(--ease);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.vbtn:hover:not(.active) {
+  background: oklch(1 0 0 / 0.22);
+  color: var(--ink);
+}
+
+.vbtn.active {
+  background: var(--clay);
+  color: var(--paper);
+  box-shadow: 0 2px 8px oklch(0.62 0.15 42 / 0.28);
+}
+
+/* ── Right Actions ──────────────────────────────────────────── */
+.right-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ── Icon Button base ───────────────────────────────────────── */
+.iconbtn,
+.lang {
+  height: 38px;
+  border: 1px solid var(--border);
+  background: var(--porcelain);
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    border-color 0.25s ease,
+    color 0.25s ease,
+    background 0.25s ease,
+    transform 0.2s var(--ease),
+    box-shadow 0.25s ease;
+  box-shadow: 0 1px 0 oklch(1 0 0 / 0.48);
+  text-decoration: none;
+  line-height: 1;
+}
+
+.iconbtn {
+  width: 38px;
+  padding: 0;
+}
+
+.lang {
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.iconbtn:hover,
+.lang:hover {
+  border-color: var(--clay);
+  color: var(--clay);
+  transform: translateY(-1px);
+  box-shadow:
+    0 2px 8px oklch(0.62 0.15 42 / 0.18),
+    0 1px 0 oklch(1 0 0 / 0.48);
+}
+
+.iconbtn:active,
+.lang:active {
+  transform: translateY(0px);
+}
+
+/* ── Cart badge ─────────────────────────────────────────────── */
+.cartwrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.cartwrap .cnt {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: var(--clay);
+  color: var(--paper);
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  pointer-events: none;
+  box-shadow: 0 2px 6px oklch(0.62 0.15 42 / 0.32);
+  animation: badge-pop 0.35s var(--ease);
+}
+
+[dir="rtl"] .cartwrap .cnt {
+  right: auto;
+  left: -5px;
+}
+
+@keyframes badge-pop {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ── Hamburger: hidden on desktop ───────────────────────────── */
+.hamburger {
+  display: none;
+}
+
+/* ── Mobile Menu ────────────────────────────────────────────── */
+.mobile-menu {
+  max-height: 0;
+  overflow: hidden;
+  transition:
+    max-height 0.38s var(--ease),
+    opacity 0.28s ease,
+    border-color 0.28s ease;
+  opacity: 0;
+  border-top: 1px solid transparent;
+  background: var(--sand);
+}
+
+:host-context([data-theme="dark"]) .mobile-menu {
+  background: oklch(0.172 0.012 60);
+}
+
+.mobile-menu.open {
+  max-height: 400px;
+  opacity: 1;
+  border-top-color: var(--border);
+}
+
+.mobile-menu-in {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-top: 20px;
+  padding-bottom: 24px;
+}
+
+.mobile-links {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mobile-link {
+  background: none;
+  border: none;
+  padding: 10px 4px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  border-radius: 10px;
+  transition:
+    color 0.22s ease,
+    background 0.22s ease,
+    padding-left 0.22s ease;
+}
+
+[dir="rtl"] .mobile-link {
+  text-align: right;
+}
+
+.mobile-link:hover,
+.mobile-link.active {
+  color: var(--clay);
+  background: oklch(0.62 0.15 42 / 0.06);
+  padding-left: 12px;
+}
+
+[dir="rtl"] .mobile-link:hover,
+[dir="rtl"] .mobile-link.active {
+  padding-left: 4px;
+  padding-right: 12px;
+}
+
+.mobile-viewswitch {
+  display: flex;
+  gap: 3px;
+  background: oklch(1 0 0 / 0.14);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+  align-self: flex-start;
+}
+
+/* ── Focus ring (accessibility) ─────────────────────────────── */
+.brand:focus-visible,
+.nav-link:focus-visible,
+.vbtn:focus-visible,
+.iconbtn:focus-visible,
+.lang:focus-visible,
+.mobile-link:focus-visible {
+  outline: 2px solid oklch(0.575 0.083 195);
+  outline-offset: 3px;
+}
+
+/* ── Responsive breakpoints ─────────────────────────────────── */
+@media (max-width: 960px) {
+  .viewswitch {
+    display: none;
+  }
+}
+
+@media (max-width: 820px) {
+  .nav-links {
+    display: none;
+  }
+
+  .hamburger {
+    display: inline-grid;
+  }
+}
+
+@media (max-width: 520px) {
+  .brand-text {
+    display: none;
+  }
+
+  .nav-in {
+    gap: 10px;
+  }
+
+  .right-actions {
+    gap: 6px;
+  }
+
+  .lang {
+    display: none;
+  }
+}
+
+/* ── Smooth entrance on mount ───────────────────────────────── */
+:host {
+  animation: nav-slide-in 0.45s var(--ease) both;
+}
+
+@keyframes nav-slide-in {
+  from {
+    transform: translateY(-8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

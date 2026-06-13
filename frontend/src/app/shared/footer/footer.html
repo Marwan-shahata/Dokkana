@@ -1,0 +1,127 @@
+<footer class="footer" aria-label="Site footer">
+  <div class="footer-top">
+    <div class="wrap">
+      <div class="footer-grid">
+
+        <!-- ── About ── -->
+        <div class="col col-about">
+          <div class="brand">
+            <div class="brand-mark" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="24" height="24" x="0" y="0" viewBox="0 0 32 32" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M31 10.5V8a1.06 1.06 0 0 0-.11-.44l-2.44-4.9A3 3 0 0 0 25.76 1H6.24a3 3 0 0 0-2.69 1.66L1.11 7.55A1.06 1.06 0 0 0 1 8v2.5a4.51 4.51 0 0 0 2 3.74V29H2a1 1 0 0 0 0 2h28a1 1 0 0 0 0-2h-1V14.24a4.51 4.51 0 0 0 2-3.74Zm-2 0a2.5 2.5 0 0 1-5 0V9h5Zm-26 0V9h5v1.5a2.5 2.5 0 0 1-5 0ZM10 9h5v1.5a2.5 2.5 0 0 1-5 0Zm7 0h5v1.5a2.5 2.5 0 0 1-5 0ZM5.34 3.55a1 1 0 0 1 .9-.55h19.52a1 1 0 0 1 .9.55L28.38 7H3.62ZM19 29h-6v-6a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1Zm8 0h-6v-6a3 3 0 0 0-3-3h-4a3 3 0 0 0-3 3v6H5V15a4.23 4.23 0 0 0 .5.05A4.5 4.5 0 0 0 9 13.33a4.5 4.5 0 0 0 7 0 4.5 4.5 0 0 0 7 0A4.5 4.5 0 0 0 26.5 15a4.23 4.23 0 0 0 .5 0Z" fill="#FFFFFF" opacity="1" data-original="#000000" class=""></path></g></svg>
+            </div>
+            <div class="brand-text">
+              <b>Dokkana</b>
+              <span class="ar">دكانة</span>
+            </div>
+          </div>
+
+          <p class="about-desc">
+            A modern e-commerce platform for fashion and lifestyle products, connecting shoppers with the finest local and curated stores.
+          </p>
+
+          <!-- Social icons -->
+          <div class="socials" role="list" aria-label="Social media links">
+            <a
+              *ngFor="let s of socials"
+               [href]="s.href"
+               class="social-btn"
+               target="_blank"
+               rel="noopener noreferrer"
+               [attr.aria-label]="s.name"
+               [innerHTML]="s.icon"
+            ></a>
+          </div>
+        </div>
+
+        <!-- ── Quick Links ── -->
+        <div class="col">
+          <h3 class="col-heading">Quick Links</h3>
+          <ul class="link-list" role="list">
+            <li *ngFor="let link of quickLinks" role="listitem">
+              <a [href]="link.href" class="footer-link">
+                <span class="link-arrow" aria-hidden="true">→</span>
+                {{ link.label }}
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- ── Customer Service ── -->
+        <div class="col">
+          <h3 class="col-heading">Customer Service</h3>
+          <ul class="link-list" role="list">
+            <li *ngFor="let link of serviceLinks" role="listitem">
+              <a [href]="link.href" class="footer-link">
+                <span class="link-arrow" aria-hidden="true">→</span>
+                {{ link.label }}
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- ── Newsletter ── -->
+        <div class="col col-newsletter">
+          <h3 class="col-heading">Stay in the Loop</h3>
+          <p class="newsletter-desc">
+            Get early access to new collections, exclusive drops, and style edits — straight to your inbox.
+          </p>
+
+          <form class="newsletter-form" (ngSubmit)="onSubscribe()" novalidate aria-label="Newsletter subscription">
+            <div class="input-wrap" [class.error]="subscribeState === 'error'" [class.success]="subscribeState === 'success'">
+              <input
+                type="email"
+                class="email-input"
+                placeholder="your@email.com"
+                [(ngModel)]="email"
+                name="email"
+                autocomplete="email"
+                aria-label="Email address"
+                [disabled]="subscribeState === 'success'"
+              />
+              <button
+                type="submit"
+                class="subscribe-btn"
+                [disabled]="subscribeState === 'success'"
+                aria-label="Subscribe to newsletter"
+              >
+                <span *ngIf="subscribeState !== 'success'">Subscribe</span>
+                <span *ngIf="subscribeState === 'success'" class="success-tick" aria-hidden="true">✓</span>
+              </button>
+            </div>
+
+            <p *ngIf="subscribeState === 'error'" class="form-msg form-msg--error" role="alert">
+              Please enter a valid email address.
+            </p>
+            <p *ngIf="subscribeState === 'success'" class="form-msg form-msg--success" role="status">
+              You're on the list — welcome to Dokkana!
+            </p>
+          </form>
+
+          <p class="newsletter-note">No spam, ever. Unsubscribe anytime.</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Bottom bar ── -->
+  <div class="footer-bottom">
+    <div class="wrap">
+      <div class="bottom-in">
+        <p class="copyright">
+          © {{ currentYear }} Dokkana. All rights reserved.
+        </p>
+        <div class="bottom-links">
+          <a href="#terms" class="bottom-link">Terms</a>
+          <span class="divider" aria-hidden="true">·</span>
+          <a href="#privacy" class="bottom-link">Privacy</a>
+          <span class="divider" aria-hidden="true">·</span>
+          <a href="#cookies" class="bottom-link">Cookies</a>
+        </div>
+        <div class="made-with">
+          Made with <span class="heart" aria-hidden="true">♥</span> in Egypt
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
