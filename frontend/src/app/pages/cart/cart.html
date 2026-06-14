@@ -10,22 +10,14 @@
   {{ toastMsg() }}
 </div>
 
-<!-- ── Trigger button ──────────────────────────────────────── -->
-<button class="cart-trigger" type="button" (click)="openCart()" aria-label="Open cart">
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true">
-    <path d="M6 6h15l-2 9H8L6 6Z"/><path d="M6 6 5 3H2"/>
-    <circle cx="9" cy="20" r="1.2"/><circle cx="18" cy="20" r="1.2"/>
-  </svg>
-  <span *ngIf="itemCount() > 0" class="trigger-badge" aria-label="{{ itemCount() }} items in cart">
-    {{ itemCount() > 9 ? '9+' : itemCount() }}
-  </span>
-</button>
+
 
 <!-- ════════════════════════════════════════════════════════
   BACKDROP + DRAWER
 ════════════════════════════════════════════════════════ -->
-<div *ngIf="isOpen()"
+<div *ngIf="isOpen"
      class="cart-backdrop"
+     (click)="close.emit()"
      [class.leaving]="isLeaving()"
      (click)="closeCart()"
      role="dialog"

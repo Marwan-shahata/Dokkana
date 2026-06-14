@@ -4,6 +4,9 @@ import {
   HostListener,
   signal,
   computed,
+  Output,
+  EventEmitter,
+  Input,
  } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -34,7 +37,7 @@ export class Cart implements OnDestroy {
     constructor(private title: Title) {}
 
   // ── Drawer state ──────────────────────────────────────────
-  isOpen    = signal(false);
+  @Input() isOpen    = signal(false);
   isLeaving = signal(false);
 
   // ── Toast ─────────────────────────────────────────────────
@@ -140,7 +143,11 @@ export class Cart implements OnDestroy {
     document.body.style.overflow = 'hidden';
   }
 
+ 
+ @Output() close = new EventEmitter<void>();
+ 
   closeCart(): void {
+    this.close.emit();
     this.isLeaving.set(true);
     setTimeout(() => {
       this.isOpen.set(false);
@@ -247,6 +254,8 @@ export class Cart implements OnDestroy {
   }
 
   ngOnInit(): void  {
-    this.title.setTitle('Dokana | Profile');
+    this.title.setTitle('Dokana | Cart');
   }
+
+
 }

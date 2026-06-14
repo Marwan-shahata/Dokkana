@@ -37,6 +37,7 @@
 
       <div class="spacer" aria-hidden="true"></div>
 
+      @if(isLoggedIn){
       <!-- ── View Switcher ── -->
       <div class="viewswitch" role="tablist" aria-label="View mode">
         <button
@@ -51,6 +52,26 @@
           {{ isRTL ? view.labelAr : view.label }}
         </button>
       </div>
+    }
+
+    <!-- ── Auth Switcher ── -->
+    @if(!isLoggedIn){
+      <div class="viewswitch" role="tablist" aria-label="View mode">
+        <button
+          *ngFor="let auth of auth"
+          class="vbtn"
+          [class.active]="activeAuth === auth.id"
+          type="button"
+          role="tab"
+          [attr.aria-selected]="activeAuth === auth.id"
+          (click)="auth.id === 'LogIn' ? openLogin() : openSignUp()"
+          (click)="setAuth(auth.id)"
+        >
+          {{ isRTL ? auth.labelAr : auth.label }}
+        </button>
+      </div>
+    }
+
 
       <!-- ── Right Actions ── -->
       <div class="right-actions">
@@ -83,6 +104,7 @@
           {{ isRTL ? 'EN' : 'ع' }}
         </button>
 
+        @if(isLoggedIn){
         <!-- Profile -->
         <button
           class="iconbtn"
@@ -106,7 +128,6 @@
             (click)="openCart()"
             aria-label="Open cart"
             [attr.title]="'Cart (' + cartCount + ' items)'"
-            routerLink="/cart"
           >
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
@@ -120,6 +141,7 @@
             aria-label="{{ cartCount }} items in cart"
           >{{ cartCount }}</span>
         </div>
+      }
 
         <!-- Mobile Hamburger -->
         <button
@@ -188,3 +210,5 @@
   </div>
 
 </nav>
+
+
