@@ -4,13 +4,18 @@ import { Component,
   OnDestroy,
   HostListener,
   Renderer2,
-  inject, } from '@angular/core';
+  inject,
+  Output,
+  EventEmitter  } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { LoginComponent } from '../components/login/login';
+import { SignUpComponent } from '../components/sign-up/sign-up';
 
 
-export type ViewMode = 'shopper' | 'store' | 'admin';
+export type ViewMode = 'shopper' | 'store';
 export type NavLink = 'home' | 'shop' | 'stores' | 'how-it-works';
 
+export type authMode = 'SignUp' | 'LogIn';
 
 @Component({
   selector: 'app-navbar',
@@ -26,7 +31,9 @@ export class Navbar implements OnInit, OnDestroy {
 
   activeView: ViewMode = 'shopper';
   activeLink: NavLink = 'home';
-  cartCount = 3;
+  activeAuth: authMode = 'SignUp';
+
+  cartCount = 0;
   isDark = false;
   isRTL = false;
   isScrolled = false;
@@ -37,6 +44,11 @@ export class Navbar implements OnInit, OnDestroy {
     { id: 'store', label: 'Store', labelAr: 'متجر' },
   ];
 
+   readonly auth: { id: authMode; label: string; labelAr: string }[] = [
+    { id: 'SignUp', label: 'SignUp', labelAr: 'سجل' },
+    { id: 'LogIn', label: 'LogIn', labelAr: 'تسجيل دخول' },
+  ];
+
   readonly navLinks: { id: NavLink; label: string; labelAr: string; sectionId: string }[] = [
     { id: 'home', label: 'Home', labelAr: 'الرئيسية', sectionId: 'section-home' },
     { id: 'shop', label: 'Shop', labelAr: 'تسوق', sectionId: 'section-shop' },
@@ -44,10 +56,14 @@ export class Navbar implements OnInit, OnDestroy {
     { id: 'how-it-works', label: 'How it works', labelAr: 'كيف يعمل', sectionId: 'section-how' },
   ];
 
+  isLoggedIn = false;
+
+
   ngOnInit(): void {
+    this.isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
     const savedTheme = localStorage.getItem('dokkana-theme');
     const savedLang = localStorage.getItem('dokkana-lang');
-
+    
     if (savedTheme === 'dark') {
       this.isDark = true;
       this.applyTheme();
@@ -56,6 +72,11 @@ export class Navbar implements OnInit, OnDestroy {
       this.isRTL = true;
       this.applyLang();
     }
+  }
+  
+  logout(): void {
+    localStorage.removeItem('isLoggedIn');
+    window.location.reload();
   }
 
   ngOnDestroy(): void {}
@@ -67,6 +88,11 @@ export class Navbar implements OnInit, OnDestroy {
 
   setView(view: ViewMode): void {
     this.activeView = view;
+    this.isMobileMenuOpen = false;
+  }
+
+  setAuth(view: authMode): void {
+    this.activeAuth = view;
     this.isMobileMenuOpen = false;
   }
 
@@ -109,9 +135,11 @@ export class Navbar implements OnInit, OnDestroy {
     this.isMobileMenuOpen = !this.isMobileMenuOpen;
   }
 
+  @Output() openCartClick = new EventEmitter<void>();
   openCart(): void {
-    console.log('Cart opened — cartCount:', this.cartCount);
+    this.openCartClick.emit();
   }
+
 
   openProfile(): void {
     console.log('Profile opened');
@@ -136,4 +164,17 @@ export class Navbar implements OnInit, OnDestroy {
       this.renderer.setAttribute(html, 'lang', 'en');
     }
   }
+
+@Output() loginClick = new EventEmitter<void>();
+@Output() signUpClick = new EventEmitter<void>();
+
+openLogin() {
+  this.loginClick.emit();
+}
+
+openSignUp() {
+  this.signUpClick.emit();
+}
+
+
 }

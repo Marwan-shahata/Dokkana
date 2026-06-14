@@ -58,12 +58,34 @@ export class LoginComponent implements OnInit {
   }
 
   onSubmit(): void {
-    this.submitted = true;
-    if (this.form.invalid) return;
-    this.isLoading = true;
-    setTimeout(() => {
-      this.isLoading = false;
-      console.log('Login payload:', this.form.value);
-    }, 1800);
+    // this.submitted = true;
+    // if (this.form.invalid) return;
+    // this.isLoading = true;
+    // setTimeout(() => {
+    //   this.isLoading = false;
+    //   console.log('Login payload:', this.form.value);
+    // }, 1800);
+
+     this.submitted = true;
+
+  if (this.form.invalid) return;
+
+  this.isLoading = true;
+
+  setTimeout(() => {
+    this.isLoading = false;
+
+    // حفظ حالة تسجيل الدخول
+    localStorage.setItem('isLoggedIn', 'true');
+
+    console.log('Login payload:', this.form.value);
+
+    // قفل الـ modal
+    this.close();
+
+    // تحديث الصفحة عشان الـ Navbar تتحدث
+    window.location.reload();
+
+  }, 1800);
   }
 }

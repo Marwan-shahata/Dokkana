@@ -1,6 +1,31 @@
-<app-navbar></app-navbar>
-<!-- <app-landing-page></app-landing-page> -->
-<!-- <app-profile></app-profile> -->
+<!-- <app-navbar></app-navbar>
  <router-outlet></router-outlet>
- <app-footer></app-footer>
-<app-admin-dashboard></app-admin-dashboard>
+ <app-footer></app-footer> -->
+
+<app-navbar
+  (loginClick)="openLogin()"
+  (signUpClick)="openSignUp()"
+  (openCartClick)="openCart()"
+></app-navbar>
+
+<router-outlet></router-outlet>
+
+<app-footer></app-footer>
+
+<app-login
+  [isOpen]="showLogin"
+  (closeModal)="closeLogin()"
+  (goToSignUp)="switchToSignUp()"
+></app-login>
+<app-sign-up
+  [isOpen]="showSignUp"
+  (closeModal)="closeSignUp()"
+  (goToLogin)="switchToLogin()"
+></app-sign-up>
+
+<app-cart
+  *ngIf="isCartOpen"
+  (close)="closeCart()"
+></app-cart>
+
+<!-- <app-cart></app-cart> -->
