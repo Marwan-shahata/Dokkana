@@ -1,19 +1,58 @@
+using Dokkana.BLL.AI.Prompts;
 using Dokkana.BLL.DTOs.AI;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
 
 namespace Dokkana.BLL.AI.Agent
 {
-    // TODO (Sprint 2): wire up Semantic Kernel + OpenAI (gpt-4o-mini) here and
-    // register the plugins (ProductSearch, CatalogRag, BusinessCopilot). For now
-    // this is a stub so the solution builds end-to-end.
     public class DokkanaAgent : IDokkanaAgent
     {
-        public Task<AiSearchResponseDTO> AskAsync(AiSearchRequestDTO request)
+        private readonly Kernel _kernel;
+        private readonly IChatCompletionService _chatCompletionService;
+
+        public DokkanaAgent(
+            Kernel kernel,
+            IChatCompletionService chatCompletionService)
         {
-            return Task.FromResult(new AiSearchResponseDTO
+            _kernel = kernel;
+            _chatCompletionService = chatCompletionService;
+        }
+
+        public async Task<AiSearchResponseDTO> AskAsync(
+            AiSearchRequestDTO request,
+            CancellationToken cancellationToken = default)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Query))
+            {
+                return new AiSearchResponseDTO
+                {
+                    Query = request?.Query ?? string.Empty,
+                    Answer = "من فضلك اكتب طلب البحث."
+                };
+            }
+
+            var chatHistory = new ChatHistory();
+
+            chatHistory.AddSystemMessage(AgentPrompts.ShoppingAssistant);
+            chatHistory.AddUserMessage(request.Query);
+
+            var executionSettings = new OpenAIPromptExecutionSettings
+            {
+                FunctionChoiceBehavior = FunctionChoiceBehavior.Required()
+            };
+
+            var result = await _chatCompletionService.GetChatMessageContentAsync(
+                chatHistory: chatHistory,
+                executionSettings: executionSettings,
+                kernel: _kernel,
+                cancellationToken: cancellationToken);
+
+            return new AiSearchResponseDTO
             {
                 Query = request.Query,
-                Answer = "AI agent not implemented yet. This is a placeholder response."
-            });
+                Answer = result.Content ?? "لم أستطع تكوين رد مناسب."
+            };
         }
     }
 }
