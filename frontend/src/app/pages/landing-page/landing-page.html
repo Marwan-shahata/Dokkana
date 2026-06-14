@@ -1,0 +1,362 @@
+<!-- ══════════════════════════════════════════════════════════
+     Dokkana — Full Landing Page
+     Sections: Navbar · Hero · Features · Categories ·
+               Products · About · Testimonials · CTA · Footer
+══════════════════════════════════════════════════════════ -->
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  2. HERO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<header class="hero" id="hero" aria-labelledby="hero-h1">
+  <div class="hero-bg" aria-hidden="true">
+    <div class="hero-orb hero-orb--1" aria-hidden="true"></div>
+    <div class="hero-orb hero-orb--2" aria-hidden="true"></div>
+    <div class="hero-orb hero-orb--3" aria-hidden="true"></div>
+  </div>
+  <div class="hero-overlay" aria-hidden="true"></div>
+
+  <div class="wrap hero-in">
+    <span class="eyebrow">
+      <i aria-hidden="true"></i>
+      AI-powered fashion discovery · Egypt
+    </span>
+
+    <h1 id="hero-h1">
+      Discover your perfect<br><em>style,</em> locally.
+    </h1>
+
+    <p class="hero-sub">
+      Search thousands of curated products from local boutiques in Arabic or English.
+      Reserve in seconds, pick up same-day.
+    </p>
+
+    <div class="hero-actions">
+      <button class="btn-hero-primary" type="button" (click)="scrollTo('products')">
+        Shop Now
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+      <button class="btn-hero-ghost" type="button" (click)="scrollTo('categories')">
+        Browse Categories
+      </button>
+    </div>
+
+    <!-- Trust badges -->
+    <div class="hero-trust" role="list" aria-label="Platform highlights">
+      <div class="trust-item" role="listitem"><span class="trust-val">128+</span><span class="trust-lbl">Local Stores</span></div>
+      <div class="trust-sep" aria-hidden="true"></div>
+      <div class="trust-item" role="listitem"><span class="trust-val">14K+</span><span class="trust-lbl">Happy Shoppers</span></div>
+      <div class="trust-sep" aria-hidden="true"></div>
+      <div class="trust-item" role="listitem"><span class="trust-val">4.9 ★</span><span class="trust-lbl">App Rating</span></div>
+    </div>
+
+    <!-- Scroll cue -->
+    <div class="scroll-cue" aria-hidden="true">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 10l5 5 5-5"/></svg>
+    </div>
+  </div>
+</header>
+
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  3. FEATURES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<section class="section features-section" id="features" aria-labelledby="features-h2">
+  <div class="wrap">
+    <div class="sec-head centered">
+      <p class="sec-tag">Why choose us</p>
+      <h2 class="sec-title" id="features-h2">Built around your experience</h2>
+      <p class="sec-sub">Every detail of Dokkana is designed to make premium local fashion effortless.</p>
+    </div>
+
+    <div class="features-grid" role="list">
+      <article *ngFor="let f of features" class="feature-card" role="listitem">
+        <div class="feature-icon" [style.color]="f.accent" aria-hidden="true" [innerHTML]="safeSvg(f.icon)"></div>
+        <h3 class="feature-title">{{ f.title }}</h3>
+        <p class="feature-desc">{{ f.desc }}</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  4. CATEGORIES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<section class="section categories-section alt-section" id="categories" aria-labelledby="categories-h2">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <p class="sec-tag">Collections</p>
+        <h2 class="sec-title" id="categories-h2">Shop by category</h2>
+      </div>
+      <button class="link-btn" type="button" (click)="scrollTo('products')">
+        View all <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+
+    <div class="cat-grid" role="list">
+      <article *ngFor="let cat of categories; let i = index"
+               class="cat-card"
+               [class.cat-card--wide]="i === 0"
+               role="listitem"
+               [attr.aria-label]="cat.name + ' — ' + cat.count + ' items'"
+               (click)="scrollTo('products')">
+        <div class="cat-bg" [style.background]="cat.gradient" aria-hidden="true">
+          <div class="cat-icon" [innerHTML]="safeSvg(cat.icon)" aria-hidden="true"></div>
+        </div>
+        <div class="cat-body">
+          <h3 class="cat-name">{{ cat.name }}</h3>
+          <span class="cat-count">{{ cat.count }} items</span>
+        </div>
+        <div class="cat-arrow" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  5. FEATURED PRODUCTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<section class="section products-section" id="products" aria-labelledby="products-h2">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <p class="sec-tag">Curated picks</p>
+        <h2 class="sec-title" id="products-h2">Featured products</h2>
+      </div>
+      <div class="product-tabs" role="tablist" aria-label="Filter products">
+        <button *ngFor="let t of productTabs"
+                class="ptab"
+                [class.active]="activeProductTab === t"
+                type="button"
+                role="tab"
+                [attr.aria-selected]="activeProductTab === t"
+                (click)="activeProductTab = t">{{ t }}</button>
+      </div>
+    </div>
+
+    <div class="products-grid" role="list">
+      <article *ngFor="let p of filteredProducts"
+               class="product-card"
+               role="listitem"
+               [attr.aria-label]="p.name">
+
+        <!-- Image -->
+        <div class="product-img" [style.background]="p.gradient">
+          <div class="product-img-inner" aria-hidden="true">
+            <svg width="68" height="68" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.2" stroke-linecap="round" opacity="0.45">
+              <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>
+            </svg>
+          </div>
+          <span *ngIf="p.badge" class="product-badge" [class]="'badge--' + p.badge.toLowerCase()">{{ p.badge }}</span>
+          <button class="fav-btn" type="button" [class.active]="p.isFav"
+                  [attr.aria-label]="(p.isFav ? 'Remove from' : 'Add to') + ' wishlist'"
+                  (click)="toggleFav(p, $event)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" [attr.fill]="p.isFav ? 'currentColor' : 'none'"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Info -->
+        <div class="product-body">
+          <p class="product-store">{{ p.store }}</p>
+          <h3 class="product-name">{{ p.name }}</h3>
+          <div class="product-stars" [attr.aria-label]="p.rating + ' stars'">
+            <span *ngFor="let s of starsArray(p.rating)" class="star" [class.filled]="s">★</span>
+            <span class="reviews">({{ p.reviews }})</span>
+          </div>
+          <div class="product-row">
+            <div class="product-price">
+              <span class="price-main">{{ p.price }} <small>{{ p.currency }}</small></span>
+              <span *ngIf="p.oldPrice" class="price-old">{{ p.oldPrice }}</span>
+            </div>
+            <button class="add-btn" type="button" (click)="addToCart(p, $event)" [attr.aria-label]="'Add ' + p.name + ' to cart'">+</button>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div class="view-all-wrap">
+      <button class="btn-outline" type="button">
+        View all products
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  6. ABOUT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<section class="section about-section alt-section" id="about" aria-labelledby="about-h2">
+  <div class="wrap about-grid">
+
+    <!-- Visual -->
+    <div class="about-visual" aria-hidden="true">
+      <div class="about-img-wrap">
+        <div class="about-img"></div>
+        <div class="about-badge">
+          <div class="about-badge-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="var(--ochre)" stroke="var(--ochre)"/></svg>
+          </div>
+          <div>
+            <b>Premium Curated</b>
+            <span>Verified local boutiques only</span>
+          </div>
+        </div>
+      </div>
+      <div class="about-stat-card">
+        <div class="about-stat"><span class="about-stat-v">2019</span><span class="about-stat-l">Founded</span></div>
+        <div class="about-stat-div" aria-hidden="true"></div>
+        <div class="about-stat"><span class="about-stat-v">128+</span><span class="about-stat-l">Partner Stores</span></div>
+        <div class="about-stat-div" aria-hidden="true"></div>
+        <div class="about-stat"><span class="about-stat-v">14K</span><span class="about-stat-l">Shoppers</span></div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="about-content">
+      <p class="sec-tag">Our story</p>
+      <h2 class="sec-title" id="about-h2">Fashion discovery,<br><em>reimagined</em> for Egypt.</h2>
+      <p class="about-desc">
+        Dokkana was born from a simple frustration — great fashion exists in local boutiques across Egypt, but it was invisible online. We built an AI-powered bridge between shoppers and the stores they never knew existed around the corner.
+      </p>
+      <p class="about-desc">
+        Today we partner with over 128 curated stores across Cairo, Alexandria, and Giza — each hand-verified for quality, authenticity, and service. Our bilingual AI understands how Egyptians actually shop: in Arabic, in English, in slang.
+      </p>
+      <ul class="about-points" aria-label="Key brand values">
+        <li *ngFor="let point of ['Fully bilingual — Arabic &amp; English search', 'Zero delivery surprises — reserve &amp; collect', 'AI that understands Egyptian fashion culture', 'Supporting local businesses since 2019']">
+          <span class="about-check" aria-hidden="true">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+          </span>
+          <span [innerHTML]="point"></span>
+        </li>
+      </ul>
+      <button class="btn-primary" type="button" (click)="scrollTo('products')">
+        Explore the collection
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  7. TESTIMONIALS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<section class="section testimonials-section" id="testimonials" aria-labelledby="testimonials-h2">
+  <div class="wrap">
+    <div class="sec-head centered">
+      <p class="sec-tag">What people say</p>
+      <h2 class="sec-title" id="testimonials-h2">Loved by shoppers across Egypt</h2>
+    </div>
+
+    <!-- Slider -->
+    <div class="testi-slider" role="region" aria-label="Customer testimonials" aria-live="polite">
+      <div class="testi-track">
+        <article *ngFor="let t of testimonials; let i = index"
+                 class="testi-card"
+                 [class.active]="i === activeTestimonial"
+                 [attr.aria-hidden]="i !== activeTestimonial"
+                 role="article">
+          <div class="testi-stars" [attr.aria-label]="t.rating + ' out of 5 stars'">
+            <span *ngFor="let s of starsArray(t.rating)" class="star filled">★</span>
+          </div>
+          <blockquote class="testi-text">"{{ t.text }}"</blockquote>
+          <footer class="testi-author">
+            <div class="testi-avatar" [style.background]="t.color" aria-hidden="true">{{ t.initials }}</div>
+            <div>
+              <b class="testi-name">{{ t.name }}</b>
+              <span class="testi-role">{{ t.role }}</span>
+            </div>
+          </footer>
+        </article>
+      </div>
+
+      <!-- Controls -->
+      <div class="testi-controls" role="group" aria-label="Testimonial navigation">
+        <button class="testi-arrow" type="button" (click)="prevTestimonial()" aria-label="Previous review">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <div class="testi-dots" role="tablist">
+          <button *ngFor="let t of testimonials; let i = index"
+                  class="testi-dot"
+                  [class.active]="i === activeTestimonial"
+                  type="button"
+                  role="tab"
+                  [attr.aria-selected]="i === activeTestimonial"
+                  [attr.aria-label]="'Go to review ' + (i+1)"
+                  (click)="setTestimonial(i)"></button>
+        </div>
+        <button class="testi-arrow" type="button" (click)="nextTestimonial()" aria-label="Next review">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- All cards (desktop) -->
+    <div class="testi-grid-desktop" role="list" aria-label="All reviews">
+      <article *ngFor="let t of testimonials" class="testi-card-sm" role="listitem">
+        <div class="testi-stars" [attr.aria-label]="t.rating + ' stars'">
+          <span *ngFor="let s of starsArray(t.rating)" class="star filled">★</span>
+        </div>
+        <blockquote class="testi-text-sm">"{{ t.text }}"</blockquote>
+        <footer class="testi-author">
+          <div class="testi-avatar testi-avatar--sm" [style.background]="t.color" aria-hidden="true">{{ t.initials }}</div>
+          <div>
+            <b class="testi-name">{{ t.name }}</b>
+            <span class="testi-role">{{ t.role }}</span>
+          </div>
+        </footer>
+      </article>
+    </div>
+  </div>
+</section>
+
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  8. CALL TO ACTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<section class="cta-section" id="cta" aria-labelledby="cta-h2">
+  <div class="cta-bg" aria-hidden="true">
+    <div class="cta-orb cta-orb--1" aria-hidden="true"></div>
+    <div class="cta-orb cta-orb--2" aria-hidden="true"></div>
+  </div>
+  <div class="wrap cta-in">
+    <span class="cta-tag">Ready to explore?</span>
+    <h2 class="cta-title" id="cta-h2">
+      Your next favourite piece<br>is waiting locally.
+    </h2>
+    <p class="cta-sub">
+      Join 14,000+ shoppers discovering premium local fashion with Dokkana.
+      No delivery fees. No waiting. Just style.
+    </p>
+    <div class="cta-actions">
+      <button class="btn-cta-primary" type="button" (click)="scrollTo('products')">
+        Start Shopping Free
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+      <button class="btn-cta-ghost" type="button" (click)="scrollTo('about')">Learn more</button>
+    </div>
+
+    <!-- Newsletter inline -->
+    <!-- <form class="cta-newsletter" (ngSubmit)="onNewsletterSubmit()" aria-label="Newsletter signup">
+      <p class="cta-newsletter-label">Or get exclusive drops in your inbox:</p>
+      <div class="newsletter-wrap" [class.error]="newsletterState === 'error'" [class.success]="newsletterState === 'success'">
+        <input type="email" [(ngModel)]="newsletterEmail" name="email" placeholder="your@email.com" autocomplete="email" aria-label="Email address" [disabled]="newsletterState === 'success'"/>
+        <button type="submit" [disabled]="newsletterState === 'success'">
+          <span *ngIf="newsletterState !== 'success'">Subscribe</span>
+          <span *ngIf="newsletterState === 'success'" class="tick" aria-label="Subscribed">✓</span>
+        </button>
+      </div>
+      <p *ngIf="newsletterState === 'error'" class="nl-msg nl-msg--error" role="alert">Please enter a valid email address.</p>
+      <p *ngIf="newsletterState === 'success'" class="nl-msg nl-msg--success" role="status">Welcome to Dokkana — you're on the list!</p>
+    </form> -->
+  </div>
+</section>

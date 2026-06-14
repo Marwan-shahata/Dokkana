@@ -1,0 +1,214 @@
+<nav
+  class="nav"
+  [class.scrolled]="isScrolled"
+  [class.dark]="isDark"
+  [attr.dir]="isRTL ? 'rtl' : 'ltr'"
+  role="navigation"
+  aria-label="Main navigation"
+>
+  <div class="wrap">
+    <div class="nav-in">
+
+      <!-- ── Brand ── -->
+      <button class="brand" type="button" (click)="scrollTo('section-home', 'home')" aria-label="Go to homepage">
+        <div class="brand-mark" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="24" height="24" x="0" y="0" viewBox="0 0 32 32" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M31 10.5V8a1.06 1.06 0 0 0-.11-.44l-2.44-4.9A3 3 0 0 0 25.76 1H6.24a3 3 0 0 0-2.69 1.66L1.11 7.55A1.06 1.06 0 0 0 1 8v2.5a4.51 4.51 0 0 0 2 3.74V29H2a1 1 0 0 0 0 2h28a1 1 0 0 0 0-2h-1V14.24a4.51 4.51 0 0 0 2-3.74Zm-2 0a2.5 2.5 0 0 1-5 0V9h5Zm-26 0V9h5v1.5a2.5 2.5 0 0 1-5 0ZM10 9h5v1.5a2.5 2.5 0 0 1-5 0Zm7 0h5v1.5a2.5 2.5 0 0 1-5 0ZM5.34 3.55a1 1 0 0 1 .9-.55h19.52a1 1 0 0 1 .9.55L28.38 7H3.62ZM19 29h-6v-6a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1Zm8 0h-6v-6a3 3 0 0 0-3-3h-4a3 3 0 0 0-3 3v6H5V15a4.23 4.23 0 0 0 .5.05A4.5 4.5 0 0 0 9 13.33a4.5 4.5 0 0 0 7 0 4.5 4.5 0 0 0 7 0A4.5 4.5 0 0 0 26.5 15a4.23 4.23 0 0 0 .5 0Z" fill="#FFFFFF" opacity="1" data-original="#000000" class=""></path></g></svg>
+        </div>
+        <div class="brand-text">
+          <b>Dokkana</b>
+          <span class="ar">دكانة</span>
+        </div>
+      </button>
+
+      <!-- ── Nav Links ── -->
+      <nav class="nav-links" aria-label="Primary links">
+        <button
+          *ngFor="let link of navLinks"
+          class="nav-link"
+          [class.active]="activeLink === link.id"
+          type="button"
+          (click)="scrollTo(link.sectionId, link.id)"
+          [attr.aria-current]="activeLink === link.id ? 'page' : null"
+        >
+          {{ isRTL ? link.labelAr : link.label }}
+        </button>
+        
+      </nav>
+
+      <div class="spacer" aria-hidden="true"></div>
+
+      @if(isLoggedIn){
+      <!-- ── View Switcher ── -->
+      <div class="viewswitch" role="tablist" aria-label="View mode">
+        <button
+          *ngFor="let view of views"
+          class="vbtn"
+          [class.active]="activeView === view.id"
+          type="button"
+          role="tab"
+          [attr.aria-selected]="activeView === view.id"
+          (click)="setView(view.id)"
+        >
+          {{ isRTL ? view.labelAr : view.label }}
+        </button>
+      </div>
+    }
+
+    <!-- ── Auth Switcher ── -->
+    @if(!isLoggedIn){
+      <div class="viewswitch" role="tablist" aria-label="View mode">
+        <button
+          *ngFor="let auth of auth"
+          class="vbtn"
+          [class.active]="activeAuth === auth.id"
+          type="button"
+          role="tab"
+          [attr.aria-selected]="activeAuth === auth.id"
+          (click)="auth.id === 'LogIn' ? openLogin() : openSignUp()"
+          (click)="setAuth(auth.id)"
+        >
+          {{ isRTL ? auth.labelAr : auth.label }}
+        </button>
+      </div>
+    }
+
+
+      <!-- ── Right Actions ── -->
+      <div class="right-actions">
+
+        <!-- Theme Toggle -->
+        <button
+          class="iconbtn"
+          type="button"
+          (click)="toggleTheme()"
+          [attr.aria-label]="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+          [attr.title]="isDark ? 'Light mode' : 'Dark mode'"
+        >
+          <svg *ngIf="!isDark" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+          </svg>
+          <svg *ngIf="isDark" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+          </svg>
+        </button>
+
+        <!-- Language Toggle -->
+        <button
+          class="lang"
+          type="button"
+          (click)="toggleLanguage()"
+          [attr.aria-label]="isRTL ? 'Switch to English' : 'Switch to Arabic'"
+          [attr.title]="isRTL ? 'English' : 'عربي'"
+        >
+          {{ isRTL ? 'EN' : 'ع' }}
+        </button>
+
+        @if(isLoggedIn){
+        <!-- Profile -->
+        <button
+          class="iconbtn"
+          type="button"
+          (click)="openProfile()"
+          aria-label="Open profile"
+          title="Profile"
+          routerLink="/profile"
+        >
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
+        </button>
+
+        <!-- Cart -->
+        <div class="cartwrap">
+          <button
+            class="iconbtn"
+            type="button"
+            (click)="openCart()"
+            aria-label="Open cart"
+            [attr.title]="'Cart (' + cartCount + ' items)'"
+          >
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <path d="M16 10a4 4 0 0 1-8 0"/>
+            </svg>
+          </button>
+          <span
+            *ngIf="cartCount > 0"
+            class="cnt"
+            aria-label="{{ cartCount }} items in cart"
+          >{{ cartCount }}</span>
+        </div>
+      }
+
+        <!-- Mobile Hamburger -->
+        <button
+          class="iconbtn hamburger"
+          type="button"
+          (click)="toggleMobileMenu()"
+          [attr.aria-expanded]="isMobileMenuOpen"
+          aria-label="Toggle mobile menu"
+          aria-controls="mobile-menu"
+        >
+          <svg *ngIf="!isMobileMenuOpen" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+          <svg *ngIf="isMobileMenuOpen" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Mobile Menu ── -->
+  <div
+    id="mobile-menu"
+    class="mobile-menu"
+    [class.open]="isMobileMenuOpen"
+    role="menu"
+    [attr.aria-hidden]="!isMobileMenuOpen"
+  >
+    <div class="mobile-menu-in wrap">
+
+      <!-- Mobile Nav Links -->
+      <div class="mobile-links">
+        <button
+          *ngFor="let link of navLinks"
+          class="mobile-link"
+          [class.active]="activeLink === link.id"
+          type="button"
+          role="menuitem"
+          (click)="scrollTo(link.sectionId, link.id)"
+        >
+          {{ isRTL ? link.labelAr : link.label }}
+        </button>
+      </div>
+
+      <!-- Mobile View Switcher -->
+      <div class="mobile-viewswitch" role="tablist" aria-label="View mode">
+        <button
+          *ngFor="let view of views"
+          class="vbtn"
+          [class.active]="activeView === view.id"
+          type="button"
+          role="tab"
+          [attr.aria-selected]="activeView === view.id"
+          (click)="setView(view.id)"
+        >
+          {{ isRTL ? view.labelAr : view.label }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</nav>
+
+

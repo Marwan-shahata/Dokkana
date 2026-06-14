@@ -77,6 +77,8 @@ builder.Services.AddAuthorization(options =>
 // ── Dependency Injection: DAL + BLL ──────────────────────────────────────────
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IStoreManager, StoreManager>();
+builder.Services.AddScoped<ICategoryManager, CategoryManager>();
+builder.Services.AddScoped<IProductManager, ProductManager>();
 builder.Services.AddScoped<IAuthManager, AuthManager>();
 builder.Services.AddScoped<IProductManager, ProductManager>();
 
@@ -113,6 +115,7 @@ builder.Services.AddScoped<Kernel>(serviceProvider =>
 
 // Register main Dokkana AI agent.
 builder.Services.AddScoped<IDokkanaAgent, DokkanaAgent>();
+builder.Services.AddScoped<IFileService, FileService>();
 
 var app = builder.Build();
 
