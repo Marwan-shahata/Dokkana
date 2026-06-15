@@ -1,0 +1,58 @@
+<section class="store-detail" [class.rtl]="lang.isAr()">
+  <button class="back-link" (click)="back()" type="button">
+    ← {{ L('All stores', 'كل المحلات') }}
+  </button>
+
+  <!-- Store header loading -->
+  <div class="store-header skeleton-header" *ngIf="loading()"></div>
+
+  <!-- Error -->
+  <div class="state-box error" *ngIf="!loading() && error()">
+    <p>{{ error() }}</p>
+    <button class="retry-btn" (click)="back()">{{ L('Back to stores', 'العودة للمحلات') }}</button>
+  </div>
+
+  <!-- Store header -->
+  <header class="store-header" *ngIf="!loading() && store() as s">
+    <span class="logo" *ngIf="s.logoUrl"><img [src]="s.logoUrl" [alt]="s.name" (error)="onImgError($event)" /></span>
+    <span class="logo placeholder" *ngIf="!s.logoUrl">{{ s.name.charAt(0) }}</span>
+    <div class="meta">
+      <h1>{{ s.name }}</h1>
+      <p class="addr" *ngIf="s.address">📍 {{ s.address }}</p>
+      <p class="desc" *ngIf="s.description">{{ s.description }}</p>
+      <div class="badges">
+        <span class="badge">{{ s.productCount }} {{ L('products', 'منتج') }}</span>
+        <span class="badge owner" *ngIf="s.ownerName">{{ s.ownerName }}</span>
+      </div>
+      <button *ngIf="canUseShopperActions()" class="save-store" type="button" [disabled]="savingStore()" (click)="saveStore()">
+        {{ savingStore() ? L('Saving...', 'جار الحفظ...') : L('Save store', 'احفظ المحل') }}
+      </button>
+    </div>
+  </header>
+
+  <!-- Products -->
+  <h2 class="section-title" *ngIf="!loading() && !error()">{{ L('Products', 'المنتجات') }}</h2>
+
+  <div class="product-grid" *ngIf="productsLoading()">
+    <div class="skeleton-card" *ngFor="let s of [1,2,3,4]"></div>
+  </div>
+
+  <div class="state-box" *ngIf="!productsLoading() && products().length === 0 && !error()">
+    <p>{{ L('This store has no products yet.', 'لا توجد منتجات في هذا المحل بعد.') }}</p>
+  </div>
+
+  <div class="product-grid" *ngIf="!productsLoading() && products().length > 0">
+    <button class="product-card" *ngFor="let p of products()" (click)="openProduct(p)" type="button">
+      <span class="thumb" [attr.data-initial]="p.title.charAt(0)">
+        <img *ngIf="p.imageUrl" [src]="p.imageUrl" [alt]="p.title" (error)="onImgError($event)" />
+      </span>
+      <span class="p-info">
+        <span class="p-title">{{ p.title }}</span>
+        <span class="p-cat">{{ p.categoryName }}</span>
+        <span class="p-price">{{ p.price }} {{ L('EGP', 'ج.م') }}</span>
+      </span>
+    </button>
+  </div>
+
+  <div class="toast" *ngIf="toast()">{{ toast() }}</div>
+</section>

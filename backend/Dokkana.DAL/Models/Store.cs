@@ -18,5 +18,6 @@ namespace Dokkana.DAL.Models
         public ApplicationUser? Owner { get; set; }
 
         public ICollection<Product> Products { get; set; } = new List<Product>();
+        public ICollection<StoreFollow> Followers { get; set; } = new List<StoreFollow>();
     }
 }

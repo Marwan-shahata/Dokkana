@@ -1,0 +1,286 @@
+<section class="merchant-shell" [class.rtl]="lang.isAr()" [attr.dir]="lang.isAr() ? 'rtl' : 'ltr'">
+  <div class="merchant-hero">
+    <div>
+      <p class="eyebrow">{{ L('Merchant portal', 'بوابة التاجر') }}</p>
+      <h1>{{ store()?.name || L('Set up your Dokkana store', 'جهّز محلك على دكانة') }}</h1>
+      <p class="hero-copy">
+        {{ L('Manage your store profile, inventory, catalog readiness, and daily signals from one quiet workspace.', 'أدِر ملف المحل والمخزون وجاهزية الكتالوج وإشارات اليوم من مساحة عمل واحدة.') }}
+      </p>
+    </div>
+
+    <div class="hero-status" *ngIf="store() as currentStore">
+      <span class="status-dot" [class.live]="currentStore.isApproved"></span>
+      <div>
+        <strong>{{ currentStore.isApproved ? L('Approved', 'مقبول') : L('Pending approval', 'بانتظار الموافقة') }}</strong>
+        <small>{{ currentStore.isApproved ? L('Visible to shoppers', 'ظاهر للمتسوقين') : L('Hidden until admin review', 'مخفي حتى مراجعة الإدارة') }}</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" *ngIf="notice()" role="status" aria-live="polite">{{ notice() }}</div>
+
+  <div class="merchant-stats" [attr.aria-label]="L('Store inventory statistics', 'إحصائيات مخزون المحل')">
+    <article>
+      <span>{{ L('Products', 'المنتجات') }}</span>
+      <strong>{{ productCount() }}</strong>
+    </article>
+    <article>
+      <span>{{ L('Inventory value', 'قيمة المخزون') }}</span>
+      <strong>{{ inventoryValue() | number:'1.0-0' }} {{ L('EGP', 'ج.م') }}</strong>
+    </article>
+    <article>
+      <span>{{ L('Low stock', 'مخزون منخفض') }}</span>
+      <strong>{{ lowStockCount() }}</strong>
+    </article>
+    <article>
+      <span>{{ L('Out of stock', 'نفد المخزون') }}</span>
+      <strong>{{ outOfStockCount() }}</strong>
+    </article>
+  </div>
+
+  <nav class="merchant-tabs" [attr.aria-label]="L('Merchant sections', 'أقسام التاجر')">
+    <button
+      *ngFor="let tab of tabs"
+      type="button"
+      [class.active]="activeTab() === tab.id"
+      (click)="selectTab(tab.id)">
+      {{ tabLabel(tab) }}
+    </button>
+  </nav>
+
+  <p class="page-error" *ngIf="error()" role="alert">{{ error() }}</p>
+  <p class="loading" *ngIf="loading()">{{ L('Loading merchant workspace...', 'جار تحميل مساحة التاجر...') }}</p>
+
+  <ng-container *ngIf="!loading()">
+    <section class="tab-panel" *ngIf="activeTab() === 'inventory'">
+      <div class="inventory-layout">
+        <form class="product-editor" (ngSubmit)="submitProduct()">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">{{ L('Product desk', 'مكتب المنتجات') }}</p>
+              <h2>{{ editingProductId() ? L('Edit product', 'تعديل المنتج') : L('Add product', 'إضافة منتج') }}</h2>
+            </div>
+            <button class="ghost" type="button" *ngIf="editingProductId()" (click)="resetProductForm()">
+              {{ L('Cancel edit', 'إلغاء التعديل') }}
+            </button>
+          </div>
+
+          <div class="form-grid">
+            <label>
+              <span>{{ L('Title', 'العنوان') }}</span>
+              <input name="title" type="text" [(ngModel)]="productForm.title" required />
+            </label>
+            <label>
+              <span>{{ L('Category', 'التصنيف') }}</span>
+              <select name="categoryId" [(ngModel)]="productForm.categoryId" required>
+                <option [ngValue]="null">{{ L('Select category', 'اختر التصنيف') }}</option>
+                <option *ngFor="let category of categories()" [ngValue]="category.id">
+                  {{ categoryLabel(category.name) }}
+                </option>
+              </select>
+            </label>
+            <label>
+              <span>{{ L('Price', 'السعر') }}</span>
+              <input name="price" type="number" min="1" step="1" [(ngModel)]="productForm.price" required />
+            </label>
+            <label>
+              <span>{{ L('Stock count', 'عدد المخزون') }}</span>
+              <input name="count" type="number" min="0" step="1" [(ngModel)]="productForm.count" required />
+            </label>
+            <label>
+              <span>{{ L('Brand', 'الماركة') }}</span>
+              <input name="brand" type="text" [(ngModel)]="productForm.brand" />
+            </label>
+            <label>
+              <span>{{ L('Color', 'اللون') }}</span>
+              <input name="color" type="text" [(ngModel)]="productForm.color" />
+            </label>
+            <label>
+              <span>{{ L('Size', 'المقاس') }}</span>
+              <input name="size" type="text" [(ngModel)]="productForm.size" />
+            </label>
+            <label>
+              <span>{{ L('Gender', 'النوع') }}</span>
+              <select name="gender" [(ngModel)]="productForm.gender">
+                <option value="">{{ L('Not specified', 'غير محدد') }}</option>
+                <option value="Women">{{ L('Women', 'نساء') }}</option>
+                <option value="Men">{{ L('Men', 'رجال') }}</option>
+                <option value="Unisex">{{ L('Unisex', 'للجميع') }}</option>
+              </select>
+            </label>
+            <label class="wide">
+              <span>{{ L('Image URL', 'رابط الصورة') }}</span>
+              <input name="imageUrl" type="url" [(ngModel)]="productForm.imageUrl" />
+            </label>
+            <label class="wide upload-inline">
+              <span>{{ L('Upload product image', 'رفع صورة المنتج') }}</span>
+              <input name="productImageFile" type="file" accept="image/*" (change)="uploadProductImage($event)" />
+              <small>{{ uploadingProductImage() ? L('Uploading...', 'جار الرفع...') : L('JPG, PNG, GIF, or WEBP up to 5 MB', 'JPG أو PNG أو GIF أو WEBP حتى 5 ميجابايت') }}</small>
+            </label>
+            <label class="wide">
+              <span>{{ L('Description', 'الوصف') }}</span>
+              <textarea name="description" rows="4" [(ngModel)]="productForm.description"></textarea>
+            </label>
+          </div>
+
+          <button class="primary" type="submit" [disabled]="savingProduct() || !store()">
+            {{ savingProduct() ? L('Saving...', 'جار الحفظ...') : editingProductId() ? L('Save product', 'حفظ المنتج') : L('Add product', 'إضافة المنتج') }}
+          </button>
+          <p class="hint" *ngIf="!store()">{{ L('Create your store profile before adding products.', 'أنشئ ملف المحل قبل إضافة المنتجات.') }}</p>
+        </form>
+
+        <div class="inventory-table">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">{{ L('Live inventory', 'المخزون الحالي') }}</p>
+              <h2>{{ productCount() }} {{ L('products', 'منتج') }}</h2>
+            </div>
+          </div>
+
+          <div class="empty" *ngIf="productsList().length === 0">
+            <strong>{{ L('No products yet', 'لا توجد منتجات بعد') }}</strong>
+            <span>{{ L('Add your first product to make it available after store approval.', 'أضف أول منتج ليظهر بعد موافقة الإدارة على المحل.') }}</span>
+          </div>
+
+          <table *ngIf="productsList().length > 0">
+            <thead>
+              <tr>
+                <th>{{ L('Product', 'المنتج') }}</th>
+                <th>{{ L('Category', 'التصنيف') }}</th>
+                <th>{{ L('Stock', 'المخزون') }}</th>
+                <th>{{ L('Price', 'السعر') }}</th>
+                <th class="right">{{ L('Actions', 'الإجراءات') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let product of productsList(); trackBy: trackProduct">
+                <td>
+                  <div class="product-cell">
+                    <span class="thumb" [style.backgroundImage]="product.imageUrl ? 'url(' + product.imageUrl + ')' : ''">
+                      <span *ngIf="!product.imageUrl">{{ product.title.slice(0, 1) }}</span>
+                    </span>
+                    <div>
+                      <strong>{{ product.title }}</strong>
+                      <small>{{ product.brand || product.storeName }}</small>
+                    </div>
+                  </div>
+                </td>
+                <td>{{ categoryLabel(product.categoryName) }}</td>
+                <td>
+                  <span class="stock-pill" [ngClass]="'stock-' + stockState(product)">
+                    {{ stockLabel(product) }} &middot; {{ product.count }}
+                  </span>
+                </td>
+                <td>{{ product.price }} {{ L('EGP', 'ج.م') }}</td>
+                <td class="right row-actions">
+                  <button type="button" class="ghost" (click)="editProduct(product)">{{ L('Edit', 'تعديل') }}</button>
+                  <button
+                    type="button"
+                    class="danger"
+                    [disabled]="deletingProductId() === product.id"
+                    (click)="deleteProduct(product)">
+                    {{ deletingProductId() === product.id ? L('Deleting...', 'جار الحذف...') : L('Delete', 'حذف') }}
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="tab-panel" *ngIf="activeTab() === 'store'">
+      <form class="store-editor" (ngSubmit)="createOrUpdateStore()">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">{{ L('Store profile', 'ملف المحل') }}</p>
+            <h2>{{ store() ? L('Edit public store details', 'تعديل بيانات المحل العامة') : L('Create your store profile', 'إنشاء ملف المحل') }}</h2>
+          </div>
+          <span class="approval-chip" *ngIf="store() as currentStore">
+            {{ currentStore.isApproved ? L('Approved', 'مقبول') : L('Pending', 'قيد المراجعة') }}
+          </span>
+        </div>
+
+        <div class="form-grid store-grid">
+          <label>
+            <span>{{ L('Store name', 'اسم المحل') }}</span>
+            <input name="storeName" type="text" [(ngModel)]="storeForm.name" required />
+          </label>
+          <label>
+            <span>{{ L('Logo URL', 'رابط الشعار') }}</span>
+            <input name="logoUrl" type="url" [(ngModel)]="storeForm.logoUrl" />
+          </label>
+          <label>
+            <span>{{ L('Upload logo', 'رفع الشعار') }}</span>
+            <input name="storeLogoFile" type="file" accept="image/*" (change)="uploadStoreLogo($event)" />
+            <small>{{ uploadingStoreLogo() ? L('Uploading...', 'جار الرفع...') : L('Optional image file', 'ملف صورة اختياري') }}</small>
+          </label>
+          <label class="wide">
+            <span>{{ L('Address', 'العنوان') }}</span>
+            <input name="address" type="text" [(ngModel)]="storeForm.address" />
+          </label>
+          <label>
+            <span>{{ L('Latitude', 'خط العرض') }}</span>
+            <input name="latitude" type="number" step="0.000001" [(ngModel)]="storeForm.latitude" />
+          </label>
+          <label>
+            <span>{{ L('Longitude', 'خط الطول') }}</span>
+            <input name="longitude" type="number" step="0.000001" [(ngModel)]="storeForm.longitude" />
+          </label>
+          <label class="wide">
+            <span>{{ L('Description', 'الوصف') }}</span>
+            <textarea name="storeDescription" rows="5" [(ngModel)]="storeForm.description"></textarea>
+          </label>
+        </div>
+
+        <button class="primary" type="submit" [disabled]="savingStore()">
+          {{ savingStore() ? L('Saving...', 'جار الحفظ...') : store() ? L('Save store profile', 'حفظ ملف المحل') : L('Create store profile', 'إنشاء ملف المحل') }}
+        </button>
+      </form>
+    </section>
+
+    <section class="tab-panel two-up" *ngIf="activeTab() === 'catalog'">
+      <div class="placeholder-panel">
+        <p class="eyebrow">{{ L('Catalog pipeline', 'مسار الكتالوج') }}</p>
+        <h2>{{ L('Upload placeholder', 'مكان رفع الكتالوج') }}</h2>
+        <p>
+          {{ L('The backend has catalog document metadata, but PDF extraction and RAG ingestion are still planned for Phase 8.', 'الخلفية تدعم بيانات مستندات الكتالوج، واستخراج PDF وإدخال RAG مخطط لهما في المرحلة الثامنة.') }}
+        </p>
+        <label class="upload-zone">
+          <span>{{ L('PDF upload arrives with RAG ingestion', 'رفع PDF سيصل مع إدخال RAG') }}</span>
+          <input type="file" accept="application/pdf" disabled />
+        </label>
+      </div>
+      <div class="placeholder-panel muted">
+        <h3>{{ L('Processing states to add later', 'حالات المعالجة التي ستضاف لاحقاً') }}</h3>
+        <ul>
+          <li>{{ L('Processing', 'قيد المعالجة') }}</li>
+          <li>{{ L('Ready', 'جاهز') }}</li>
+          <li>{{ L('Failed with retry', 'فشل مع إعادة المحاولة') }}</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="tab-panel two-up" *ngIf="activeTab() === 'copilot'">
+      <div class="placeholder-panel">
+        <p class="eyebrow">{{ L('Business Copilot', 'مساعد الأعمال') }}</p>
+        <h2>{{ L('Inventory-aware placeholder', 'مساحة مبدئية تقرأ المخزون') }}</h2>
+        <p>
+          {{ L('Orders now exist, so the next backend slice can add merchant analytics and a copilot plugin over sales and stock.', 'الطلبات موجودة الآن، والخطوة القادمة يمكنها إضافة تحليلات التاجر ومساعد ذكي للمبيعات والمخزون.') }}
+        </p>
+        <div class="prompt-row">
+          <button type="button" disabled>{{ L('What is low on stock?', 'ما المنتجات منخفضة المخزون؟') }}</button>
+          <button type="button" disabled>{{ L('What sold best?', 'ما الأكثر مبيعاً؟') }}</button>
+        </div>
+      </div>
+      <div class="placeholder-panel muted">
+        <h3>{{ L('Available signals today', 'إشارات اليوم المتاحة') }}</h3>
+        <ul>
+          <li>{{ lowStockCount() }} {{ L('products low on stock', 'منتجات منخفضة المخزون') }}</li>
+          <li>{{ outOfStockCount() }} {{ L('products out of stock', 'منتجات نفد مخزونها') }}</li>
+          <li>{{ inventoryValue() | number:'1.0-0' }} {{ L('EGP in listed inventory', 'ج.م في المخزون المعروض') }}</li>
+        </ul>
+      </div>
+    </section>
+  </ng-container>
+</section>

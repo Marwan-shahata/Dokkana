@@ -22,5 +22,8 @@ namespace Dokkana.DAL.Models
 
         public int StoreId { get; set; }
         public Store? Store { get; set; }
+
+        public ICollection<FavoriteProduct> Favorites { get; set; } = new List<FavoriteProduct>();
+        public ICollection<ProductReview> Reviews { get; set; } = new List<ProductReview>();
     }
 }
