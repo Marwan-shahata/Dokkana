@@ -13,11 +13,16 @@ namespace Dokkana.API.Controllers
     {
         private readonly IStoreManager _storeManager;
         private readonly IAuditLogManager _audit;
+        private readonly INotificationManager _notificationManager;
 
-        public StoresController(IStoreManager storeManager, IAuditLogManager audit)
+        public StoresController(
+            IStoreManager storeManager,
+            IAuditLogManager audit,
+            INotificationManager notificationManager)
         {
             _storeManager = storeManager;
             _audit = audit;
+            _notificationManager = notificationManager;
         }
 
         // Admin: browse all stores (including unapproved).
@@ -64,6 +69,10 @@ namespace Dokkana.API.Controllers
         public async Task<IActionResult> Create(StoreCreateDTO dto)
         {
             var ownerId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var existingStore = await _storeManager.GetByOwnerAsync(ownerId);
+            if (existingStore is not null)
+                return BadRequest(GeneralResult.Fail("This seller already has a store. Use PUT /api/stores/{id} to update it."));
+
             var created = await _storeManager.CreateAsync(dto, ownerId);
             return CreatedAtAction(nameof(GetById), new { id = created.Id },
                 GeneralResult<StoreDTO>.Ok(created));
@@ -117,6 +126,7 @@ namespace Dokkana.API.Controllers
                 "ApproveStore",
                 "Store",
                 id.ToString());
+            await _notificationManager.NotifyStoreApprovedAsync(id);
 
             return Ok(GeneralResult.Ok("Store approved."));
         }

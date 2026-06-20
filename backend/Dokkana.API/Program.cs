@@ -1,10 +1,12 @@
 using System.Text;
 using System.Threading.RateLimiting;
+using Dokkana.API.Hubs;
 using Microsoft.AspNetCore.RateLimiting;
 using Dokkana.BLL.AI.Agent;
 using Dokkana.BLL.AI.Plugins;
 using Dokkana.BLL.Managers;
 using Dokkana.BLL.Services;
+using Dokkana.API.Services;
 using Microsoft.SemanticKernel;
 using Dokkana.DAL.Data;
 using Dokkana.DAL.Models;
@@ -21,6 +23,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Controllers + OpenAPI
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddSignalR();
 
 // Rate limiting (protect the AI endpoint from abuse)
 builder.Services.AddRateLimiter(options =>
@@ -40,7 +43,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAngular", policy =>
         policy.WithOrigins("http://localhost:4200")
               .AllowAnyHeader()
-              .AllowAnyMethod());
+              .AllowAnyMethod()
+              .AllowCredentials());
 });
 
 // Database (SQL Server)
@@ -83,6 +87,23 @@ builder.Services.AddAuthentication(options =>
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
             ClockSkew = TimeSpan.Zero
         };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    path.StartsWithSegments("/hubs/notifications"))
+                {
+                    context.Token = accessToken;
+                }
+
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddAuthorization(options =>
@@ -106,6 +127,9 @@ builder.Services.AddScoped<IStoreFollowManager, StoreFollowManager>();
 builder.Services.AddScoped<IReviewManager, ReviewManager>();
 builder.Services.AddScoped<IAuditLogManager, AuditLogManager>();
 builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IDashboardManager, DashboardManager>();
+builder.Services.AddScoped<INotificationManager, NotificationManager>();
+builder.Services.AddScoped<INotificationRealtimeService, SignalRNotificationRealtimeService>();
 builder.Services.AddScoped<Dokkana.BLL.AI.IAiProductMatcher, Dokkana.BLL.AI.AiProductMatcher>();
 
 // AI: product-search manager used by the Semantic Kernel plugin
@@ -321,6 +345,7 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 
 app.Run();

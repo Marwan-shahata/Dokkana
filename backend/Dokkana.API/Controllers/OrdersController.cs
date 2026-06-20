@@ -14,11 +14,16 @@ namespace Dokkana.API.Controllers
     {
         private readonly IOrderManager _orderManager;
         private readonly IAuditLogManager _audit;
+        private readonly INotificationManager _notificationManager;
 
-        public OrdersController(IOrderManager orderManager, IAuditLogManager audit)
+        public OrdersController(
+            IOrderManager orderManager,
+            IAuditLogManager audit,
+            INotificationManager notificationManager)
         {
             _orderManager = orderManager;
             _audit = audit;
+            _notificationManager = notificationManager;
         }
 
         private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
@@ -77,6 +82,7 @@ namespace Dokkana.API.Controllers
                 "Order",
                 id.ToString(),
                 dto.Status);
+            await _notificationManager.NotifyOrderStatusChangedAsync(id, dto.Status);
 
             return Ok(result);
         }

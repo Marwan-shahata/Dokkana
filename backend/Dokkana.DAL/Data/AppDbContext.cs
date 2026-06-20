@@ -22,6 +22,7 @@ namespace Dokkana.DAL.Data
         public DbSet<StoreFollow> StoreFollows => Set<StoreFollow>();
         public DbSet<ProductReview> ProductReviews => Set<ProductReview>();
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+        public DbSet<Notification> Notifications => Set<Notification>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

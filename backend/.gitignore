@@ -1,0 +1,9 @@
+bin/
+obj/
+.vs/
+build-check/
+*.user
+*.suo
+*.zip
+server.log
+/Dokkana/
