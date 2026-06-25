@@ -10,10 +10,16 @@ namespace Dokkana.BLL.DTOs.Store
         [MaxLength(500)]
         public string? Description { get; set; }
 
+        [MaxLength(2048)]
+        public string? LogoUrl { get; set; }
+
         [MaxLength(200)]
         public string? Address { get; set; }
 
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
+
+        [MaxLength(32)]
+        public string? WhatsAppPhone { get; set; }
     }
 }

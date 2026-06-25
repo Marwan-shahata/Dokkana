@@ -32,7 +32,7 @@
           <path d="M6 6h15l-2 9H8L6 6Z"/><path d="M6 6 5 3H2"/>
           <circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/>
         </svg>
-        <h2 class="cart-title">{{ L('Your Cart','سلتك') }}</h2>
+        <h2 class="cart-title">{{ L('Your reservation','حجزك') }}</h2>
         <span *ngIf="itemCount() > 0" class="cart-count" [attr.aria-label]="L(itemCount() + ' items', itemCount() + ' عناصر')">{{ itemCount() }}</span>
       </div>
       <div class="cart-header-right">
@@ -50,27 +50,6 @@
         </button>
       </div>
     </header>
-
-    <!-- Free delivery progress -->
-    <div *ngIf="!loading() && items().length > 0" class="delivery-bar">
-      <p class="delivery-msg" [class.reached]="freeDeliveryRemaining() === 0">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-          <rect x="1" y="3" width="15" height="13" rx="1"/>
-          <path d="M16 8h4l3 5v3h-7V8zM5.5 21a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM18.5 21a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
-        </svg>
-        <span *ngIf="freeDeliveryRemaining() > 0">
-          {{ L('Add','أضف') }} <strong>{{ freeDeliveryRemaining() }} {{ currencyLabel() }}</strong> {{ L('more for free delivery','أخرى للشحن المجاني') }}
-        </span>
-        <span *ngIf="freeDeliveryRemaining() === 0">
-          <strong>{{ L("You've unlocked free delivery!",'حصلت على شحن مجاني!') }}</strong>
-        </span>
-      </p>
-      <div class="delivery-track" role="progressbar"
-           [attr.aria-valuenow]="freeDeliveryProgress()"
-           aria-valuemin="0" aria-valuemax="100">
-        <div class="delivery-fill" [style.width.%]="freeDeliveryProgress()"></div>
-      </div>
-    </div>
 
     <!-- Scrollable items -->
     <div class="cart-scroll" role="list" [attr.aria-label]="L('Cart items','عناصر السلة')">
@@ -192,72 +171,36 @@
     <!-- Sticky Footer -->
     <footer class="cart-footer" *ngIf="!loading() && items().length > 0">
 
-      <!-- Promo code -->
-      <div class="promo-wrap">
-        <div class="promo-row" [class.applied]="promoApplied()" [class.error]="promoError()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-            <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/>
-            <line x1="7" y1="7" x2="7.01" y2="7"/>
-          </svg>
-          <input *ngIf="!promoApplied()"
-                 class="promo-input"
-                 type="text"
-                 [(ngModel)]="promoCode"
-                 [placeholder]="L('Promo code (try DOKKANA10)','كود الخصم (جرّب DOKKANA10)')"
-                 (keydown.enter)="applyPromo()"
-                 [attr.aria-label]="L('Enter promo code','اكتب كود الخصم')"/>
-          <span *ngIf="promoApplied()" class="promo-applied-label">
-            {{ L('DOKKANA10 - 10% off applied','تم تطبيق خصم DOKKANA10 بنسبة ١٠٪') }}
-          </span>
-          <button *ngIf="!promoApplied()" class="promo-btn" type="button" (click)="applyPromo()">{{ L('Apply','تطبيق') }}</button>
-          <button *ngIf="promoApplied()"  class="promo-remove" type="button" (click)="removePromo()" [attr.aria-label]="L('Remove promo code','حذف كود الخصم')">×</button>
-        </div>
-        <p *ngIf="promoError()" class="promo-err" role="alert">{{ L('Invalid promo code. Please try again.','كود الخصم غير صحيح. حاول مرة أخرى.') }}</p>
-      </div>
-
       <!-- Summary -->
       <div class="cart-summary">
         <div class="summary-row">
           <span>{{ L('Subtotal','المجموع الفرعي') }}</span>
           <span>{{ subtotal() }} {{ currencyLabel() }}</span>
         </div>
-        <div *ngIf="promoApplied()" class="summary-row summary-row--discount">
-          <span>{{ L('Discount (10%)','خصم (١٠٪)') }}</span>
-          <span>-{{ discount() }} {{ currencyLabel() }}</span>
-        </div>
-        <div class="summary-row">
-          <span>{{ L('Delivery','الشحن') }}</span>
-          <span *ngIf="deliveryFee() > 0">{{ deliveryFee() }} {{ currencyLabel() }}</span>
-          <span *ngIf="deliveryFee() === 0" class="free-tag">{{ L('Free','مجاني') }}</span>
-        </div>
         <div class="summary-divider" aria-hidden="true"></div>
         <div class="summary-row summary-row--total">
           <span>{{ L('Total','الإجمالي') }}</span>
           <span>{{ total() }} <small>{{ currencyLabel() }}</small></span>
         </div>
+        <p class="pickup-note">{{ L('Reserve now and pay in store at pickup.','احجز الآن وادفع في المحل عند الاستلام.') }}</p>
       </div>
 
       <!-- Checkout CTA -->
       <button class="btn-checkout" type="button" (click)="checkout()" [disabled]="checkingOut()">
-        {{ checkingOut() ? L('Placing reservation...','جار تأكيد الحجز...') : L('Proceed to Checkout','تأكيد الحجز') }}
+        {{ checkingOut() ? L('Placing reservation...','جار تأكيد الحجز...') : L('Confirm reservation','تأكيد الحجز') }}
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </button>
 
-      <!-- Trust row -->
+      <!-- Trust row: only claims that match the reserve-and-pay-at-pickup model. -->
       <div class="cart-trust">
         <span class="trust-item">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          {{ L('Secure checkout','دفع آمن') }}
-        </span>
-        <span class="trust-sep" aria-hidden="true">·</span>
-        <span class="trust-item">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
-          {{ L('30-day returns','إرجاع خلال ٣٠ يوم') }}
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          {{ L('Free to reserve','الحجز مجاني') }}
         </span>
         <span class="trust-sep" aria-hidden="true">·</span>
         <span class="trust-item">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/></svg>
-          {{ L('Fast delivery','توصيل سريع') }}
+          {{ L('Pay in store at pickup','الدفع في المحل عند الاستلام') }}
         </span>
       </div>
 

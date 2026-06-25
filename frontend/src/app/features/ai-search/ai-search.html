@@ -1,0 +1,123 @@
+<section class="ai-page" [class.rtl]="lang.isAr()">
+  <div class="ai-wrap">
+
+    <!-- Header -->
+    <header class="ai-head">
+      <span class="ai-eyebrow"><i></i>{{ L('AI shopping assistant', 'مساعد التسوق الذكي') }}</span>
+      <h1>{{ L('Describe it. We find it nearby.', 'اوصفه. نلاقيهولك جنبك.') }}</h1>
+      <p>{{ L('Ask in Arabic or English. Dokkana reads style, color, and budget, then searches real local stock.', 'اسأل بالعربي أو الإنجليزي. دكانة بتفهم الستايل واللون والميزانية وبتدوّر في بضاعة محلية حقيقية.') }}</p>
+    </header>
+
+    <!-- Search bar -->
+    <div class="ai-search-bar">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+      <input
+        [(ngModel)]="query"
+        (keydown.enter)="runSearch()"
+        [placeholder]="L('Try: red linen dress under 500 EGP near me', 'جرّب: فستان كتان أحمر تحت ٥٠٠ جنيه قريب مني')"
+        [attr.aria-label]="L('Search query', 'نص البحث')" />
+      <label class="cam" [title]="L('Search by image', 'بحث بالصورة')" [attr.aria-label]="L('Search by image', 'بحث بالصورة')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <input type="file" accept="image/*" (change)="searchByImage($event)" hidden />
+      </label>
+      <button class="go" type="button" (click)="runSearch()" [disabled]="searching()">
+        {{ searching() ? L('Searching…', 'جاري البحث…') : L('Search', 'بحث') }}
+      </button>
+    </div>
+
+    <!-- Example chips (only before a search) -->
+    <div class="ai-examples" *ngIf="!hasSearched()">
+      <span class="lbl">{{ L('Try one:', 'جرّب:') }}</span>
+      <button *ngFor="let c of exampleChips" type="button" (click)="useExample(c)">{{ L(c.en, c.ar) }}</button>
+    </div>
+
+    <!-- Conversation / answer -->
+    <div class="ai-answer" *ngIf="searching() || answer()">
+      <div class="ai-avatar" aria-hidden="true">✦</div>
+      <div class="ai-bubble">
+        <p *ngIf="searching()" class="thinking">{{ L('Reading your request…', 'بقرأ طلبك…') }}</p>
+        <p *ngIf="!searching() && answer()">{{ answer() }}</p>
+        <div class="ai-tags" *ngIf="!searching() && intentTags().length">
+          <b>{{ L('Understood:', 'فهمت:') }}</b>
+          <span class="tag" *ngFor="let t of intentTags()">{{ t }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Follow-up refinements -->
+    <div class="ai-followups" *ngIf="!searching() && hasSearched() && products().length">
+      <span class="lbl">{{ L('Refine:', 'حسّن:') }}</span>
+      <button *ngFor="let f of followUps" type="button" (click)="followUp(f)">{{ L(f.en, f.ar) }}</button>
+    </div>
+
+    <!-- Error banner -->
+    <div class="ai-error" *ngIf="error()" role="alert">{{ error() }}</div>
+
+    <!-- Loading skeletons -->
+    <div class="ai-grid" *ngIf="searching()">
+      <div class="ai-card skeleton" *ngFor="let s of [1,2,3,4,5,6]" aria-hidden="true">
+        <div class="ph"></div>
+        <div class="pb"><span class="sk-line"></span><span class="sk-line short"></span></div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="ai-grid" *ngIf="!searching() && products().length">
+      <article class="ai-card" *ngFor="let p of products()" (click)="openProduct(p)">
+        <div class="ph" [style.background]="p.gradient">
+          <span class="ph-icon" [innerHTML]="garment(p.icon)"></span>
+          <img *ngIf="p.image" class="ph-img" [src]="p.image" (error)="onImgError($event)" alt="" loading="lazy" />
+          <span class="sponsored" *ngIf="p.isSponsored">{{ L('Sponsored', 'إعلان') }}</span>
+          <span class="match" *ngIf="p.reason" [title]="p.reason">{{ L('Why this', 'ليه ده') }}</span>
+        </div>
+        <div class="pb">
+          <div class="store">{{ p.store }}</div>
+          <div class="nm">{{ p.title }}</div>
+          <p class="reason" *ngIf="p.reason">{{ p.reason }}</p>
+          <div class="stars" *ngIf="p.rating">
+            <span *ngFor="let s of stars(p.rating)" [class.on]="s">★</span>
+            <small class="rcount" *ngIf="p.reviewCount">({{ p.reviewCount }})</small>
+          </div>
+          <div class="loc" *ngIf="p.location">📍 {{ p.location }}</div>
+          <div class="row">
+            <div class="pr">
+              <s *ngIf="p.isOnSale && p.originalPrice">{{ p.originalPrice }}</s>
+              {{ displayPrice(p) }} <small>{{ L('EGP', 'ج.م') }}</small>
+            </div>
+            <button *ngIf="canUseShopperActions()" class="add" (click)="addToCart(p, $event)"
+                    [attr.aria-label]="L('Reserve ' + p.title, 'احجز ' + p.title)">+</button>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <!-- Low confidence / no local matches -->
+    <div class="ai-empty" *ngIf="!searching() && hasSearched() && !products().length">
+      <p *ngIf="lowConfidence()">{{ L('No local products matched with confidence.', 'لا توجد منتجات محلية مطابقة بثقة كافية.') }}</p>
+      <p *ngIf="!lowConfidence()">{{ L('No results found.', 'لا توجد نتائج.') }}</p>
+      <button class="normal-search" type="button" (click)="normalSearchFallback()">
+        {{ L('Try a normal search instead', 'جرّب بحثاً عادياً بدلاً من ذلك') }}
+      </button>
+      <button class="alert-search" type="button" (click)="createSearchAlert()" [disabled]="savingSearchAlert()">
+        {{ savingSearchAlert() ? L('Saving alert...', 'جار حفظ التنبيه...') : L('Tell me when this exists', 'نبّهني لما يظهر') }}
+      </button>
+    </div>
+
+    <!-- Online matches -->
+    <div class="ai-web" *ngIf="!searching() && webResults().length">
+      <div class="web-head">
+        <span>{{ L('Online matches', 'نتائج أونلاين') }}</span>
+        <small>{{ L('Links open in a new tab', 'الروابط تفتح في تبويب جديد') }}</small>
+      </div>
+      <div class="web-list">
+        <a class="web-card" *ngFor="let r of webResults()" [href]="r.url" target="_blank" rel="noopener noreferrer">
+          <span class="web-source">{{ L('Online', 'أونلاين') }}</span>
+          <b>{{ r.title }}</b>
+          <p *ngIf="r.description">{{ r.description }}</p>
+          <small *ngIf="r.reason">{{ r.reason }}</small>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</section>

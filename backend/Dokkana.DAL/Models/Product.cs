@@ -10,6 +10,10 @@ namespace Dokkana.DAL.Models
         public decimal Price { get; set; }
         public int Count { get; set; }
         public string? ImageUrl { get; set; }
+        public decimal? OriginalPrice { get; set; }
+        public decimal? SalePrice { get; set; }
+        public DateTime? SaleStartsAt { get; set; }
+        public DateTime? SaleEndsAt { get; set; }
 
         // Fashion attributes for AI search.
         public string? Color { get; set; }

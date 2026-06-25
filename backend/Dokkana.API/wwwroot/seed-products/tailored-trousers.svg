@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-label="Tailored trousers">
+  <rect width="640" height="640" rx="48" fill="#e9e2d7"/>
+  <path d="M238 112h164l28 424h-92l-18-270-18 270h-92l28-424z" fill="#263951"/>
+  <path d="M238 112h164v56H238z" fill="#1f2f45"/>
+  <path d="M320 168v360" stroke="#4e6381" stroke-width="10"/>
+</svg>

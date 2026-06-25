@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-label="Denim jacket top">
+  <rect width="640" height="640" rx="48" fill="#e8e2d7"/>
+  <path d="M212 148l82-40 26 42 26-42 82 40 52 112-66 26v214H226V286l-66-26 52-112z" fill="#335f86"/>
+  <path d="M320 152v348M258 230h48M334 230h48" stroke="#9db6c8" stroke-width="12" stroke-linecap="round"/>
+  <path d="M294 108l26 42-42 76-24-92 40-26zm52 0l-26 42 42 76 24-92-40-26z" fill="#254968"/>
+</svg>

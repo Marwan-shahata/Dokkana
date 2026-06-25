@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-label="White cotton blouse">
+  <rect width="640" height="640" rx="48" fill="#e8ded3"/>
+  <path d="M214 156l74-46 32 38 32-38 74 46 46 104-58 28v200H226V288l-58-28 46-104z" fill="#f8f5ed"/>
+  <path d="M288 110l32 38-34 50-26-60 28-28zm64 0l-32 38 34 50 26-60-28-28z" fill="#ddd4c8"/>
+  <path d="M320 154v334" stroke="#d6cec3" stroke-width="10"/>
+</svg>

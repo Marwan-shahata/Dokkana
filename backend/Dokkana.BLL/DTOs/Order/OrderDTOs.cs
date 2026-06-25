@@ -51,4 +51,17 @@ namespace Dokkana.BLL.DTOs.Order
         // Reserved | Completed | Cancelled
         public string Status { get; set; } = string.Empty;
     }
+
+    // Store-owner view of an order that includes their products. Items are
+    // filtered to this store's lines; StoreTotal is the subtotal for them.
+    public class StoreOrderDTO
+    {
+        public int Id { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public string PickupCode { get; set; } = string.Empty;
+        public string CustomerName { get; set; } = string.Empty;
+        public decimal StoreTotal { get; set; }
+        public IReadOnlyList<OrderItemDTO> Items { get; set; } = new List<OrderItemDTO>();
+    }
 }

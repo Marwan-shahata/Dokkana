@@ -27,6 +27,11 @@ namespace Dokkana.BLL.Managers
             if (product is null)
                 return GeneralResult<CartDTO>.Fail("Product not found.");
 
+            // Products from stores that are not yet approved must not be orderable.
+            var store = await _unitOfWork.Stores.GetByIdAsync(product.StoreId);
+            if (store is null || !store.IsApproved)
+                return GeneralResult<CartDTO>.Fail("This product is not available.");
+
             var cart = await LoadCartAsync(userId) ?? await CreateCartAsync(userId);
 
             var existing = cart.Items.FirstOrDefault(i => i.ProductId == dto.ProductId);

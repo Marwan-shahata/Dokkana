@@ -12,6 +12,7 @@ namespace Dokkana.DAL.Models
         public string? Gender { get; set; }
         public string? Location { get; set; }
         public string? AvatarUrl { get; set; }
+        public bool SponsoredNotificationsEnabled { get; set; } = true;
 
         // Set only when this user owns a store (role = StoreOwner).
         public int? StoreId { get; set; }

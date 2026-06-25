@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Dokkana.BLL.DTOs.Store;
 using Dokkana.BLL.Managers;
 using Dokkana.Common;
+using Dokkana.DAL.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,11 +14,13 @@ namespace Dokkana.API.Controllers
     {
         private readonly IStoreManager _storeManager;
         private readonly IAuditLogManager _audit;
+        private readonly INotificationManager _notifications;
 
-        public StoresController(IStoreManager storeManager, IAuditLogManager audit)
+        public StoresController(IStoreManager storeManager, IAuditLogManager audit, INotificationManager notifications)
         {
             _storeManager = storeManager;
             _audit = audit;
+            _notifications = notifications;
         }
 
         // Admin: browse all stores (including unapproved).
@@ -71,7 +74,7 @@ namespace Dokkana.API.Controllers
 
         // StoreOwner: update their own store. Admin may update any store.
         [HttpPut("{id:int}")]
-        [Authorize(Policy = "StoreOwnerOnly")]
+        [Authorize(Policy = "AdminOrStoreOwner")]
         public async Task<IActionResult> Update(int id, StoreUpdateDTO dto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
@@ -118,7 +121,41 @@ namespace Dokkana.API.Controllers
                 "Store",
                 id.ToString());
 
+            // Tell the store owner their store is now live.
+            await _notifications.NotifyStoreApprovedAsync(id);
+
             return Ok(GeneralResult.Ok("Store approved."));
+        }
+
+        // StoreOwner changes their own plan ("Upgrade to Pro"); Admin may set any
+        // store's plan. Billing is mocked for now — the upgrade applies instantly.
+        [HttpPut("{id:int}/tier")]
+        [Authorize(Policy = "AdminOrStoreOwner")]
+        public async Task<IActionResult> SetTier(int id, StoreTierUpdateDTO dto)
+        {
+            if (!Enum.TryParse<StoreTier>(dto.Tier, ignoreCase: true, out var tier))
+                return BadRequest(GeneralResult.Fail("Unknown plan. Use 'Free' or 'Pro'."));
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var result = await _storeManager.SetTierAsync(id, tier, userId, User.IsInRole("Admin"));
+
+            if (result == OwnershipResult.Success)
+            {
+                await _audit.LogAsync(
+                    userId,
+                    User.FindFirstValue(ClaimTypes.Email),
+                    "SetStoreTier",
+                    "Store",
+                    $"{id} -> {tier}");
+            }
+
+            return result switch
+            {
+                OwnershipResult.Success => Ok(GeneralResult.Ok($"Plan updated to {tier}.")),
+                OwnershipResult.Forbidden => StatusCode(StatusCodes.Status403Forbidden,
+                    GeneralResult.Fail("You do not own this store.")),
+                _ => NotFound(GeneralResult.Fail(Errors.NotFound)),
+            };
         }
     }
 }

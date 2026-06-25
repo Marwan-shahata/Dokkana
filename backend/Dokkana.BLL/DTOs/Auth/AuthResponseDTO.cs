@@ -8,6 +8,9 @@ namespace Dokkana.BLL.DTOs.Auth
         public string LastName { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
         public string Token { get; set; } = string.Empty;
+        public DateTime TokenExpiresAt { get; set; }
+        public string RefreshToken { get; set; } = string.Empty;
+        public DateTime RefreshTokenExpiresAt { get; set; }
         public int? StoreId { get; set; }
         public string? StoreName { get; set; }
     }

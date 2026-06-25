@@ -40,6 +40,15 @@ namespace Dokkana.BLL.Managers
             var productExists = await _unitOfWork.Products.Query().AnyAsync(p => p.Id == productId);
             if (!productExists) return GeneralResult<ProductReviewDTO>.Fail("Product not found.");
 
+            var hasCompletedPurchase = await _unitOfWork.Orders.Query()
+                .AnyAsync(o =>
+                    o.UserId == userId &&
+                    o.Status == OrderStatus.Completed &&
+                    o.Items.Any(i => i.ProductId == productId));
+            if (!hasCompletedPurchase)
+                return GeneralResult<ProductReviewDTO>.Fail(
+                    "You can review this product after completing a pickup order.");
+
             var review = await _unitOfWork.ProductReviews.Query()
                 .FirstOrDefaultAsync(r => r.UserId == userId && r.ProductId == productId);
 

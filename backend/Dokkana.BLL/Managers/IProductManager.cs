@@ -8,6 +8,9 @@ namespace Dokkana.BLL.Managers
     {
         Task<PagedResult<ProductListDTO>> GetAllAsync(string? search, int? categoryId,
             decimal? minPrice, decimal? maxPrice, string? color, string? gender, int page, int pageSize);
+        Task<IReadOnlyList<ProductDto>> GetProductsAsync(
+            ProductFilterDto filter,
+            CancellationToken cancellationToken = default);
         Task<ProductDetailsDTO?> GetByIdAsync(int id);
         Task<PagedResult<ProductListDTO>> GetByStoreAsync(int storeId, int page, int pageSize);
 

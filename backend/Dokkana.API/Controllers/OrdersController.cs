@@ -14,11 +14,13 @@ namespace Dokkana.API.Controllers
     {
         private readonly IOrderManager _orderManager;
         private readonly IAuditLogManager _audit;
+        private readonly INotificationManager _notifications;
 
-        public OrdersController(IOrderManager orderManager, IAuditLogManager audit)
+        public OrdersController(IOrderManager orderManager, IAuditLogManager audit, INotificationManager notifications)
         {
             _orderManager = orderManager;
             _audit = audit;
+            _notifications = notifications;
         }
 
         private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
@@ -77,6 +79,42 @@ namespace Dokkana.API.Controllers
                 "Order",
                 id.ToString(),
                 dto.Status);
+
+            // Let the shopper know their order status changed.
+            await _notifications.NotifyOrderStatusChangedAsync(id, dto.Status);
+
+            return Ok(result);
+        }
+
+        // Store owner
+
+        // Orders that include the signed-in owner's products (filtered to their lines).
+        [HttpGet("store")]
+        [Authorize(Policy = "StoreOwnerOnly")]
+        public async Task<IActionResult> GetStoreOrders()
+        {
+            var orders = await _orderManager.GetStoreOrdersAsync(UserId);
+            return Ok(GeneralResult<IEnumerable<StoreOrderDTO>>.Ok(orders));
+        }
+
+        // Store owner updates the status of an order that contains their products.
+        [HttpPut("store/{id:int}/status")]
+        [Authorize(Policy = "StoreOwnerOnly")]
+        public async Task<IActionResult> UpdateStoreStatus(int id, UpdateOrderStatusDTO dto)
+        {
+            var result = await _orderManager.UpdateStatusForStoreAsync(id, dto.Status, UserId);
+            if (!result.Success) return BadRequest(result);
+
+            await _audit.LogAsync(
+                User.FindFirstValue(ClaimTypes.NameIdentifier),
+                User.FindFirstValue(ClaimTypes.Email),
+                "UpdateOrderStatus(Store)",
+                "Order",
+                id.ToString(),
+                dto.Status);
+
+            // Let the shopper know their order status changed.
+            await _notifications.NotifyOrderStatusChangedAsync(id, dto.Status);
 
             return Ok(result);
         }

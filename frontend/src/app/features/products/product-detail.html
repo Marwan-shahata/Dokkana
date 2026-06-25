@@ -2,7 +2,7 @@
   <button class="back-link" (click)="back()" type="button">← {{ L('Stores', 'المحلات') }}</button>
 
   <!-- Loading -->
-  <div class="pd-grid" *ngIf="loading()">
+  <div class="pd-shell loading-shell" *ngIf="loading()">
     <div class="skeleton media"></div>
     <div class="skeleton text"></div>
   </div>
@@ -14,47 +14,115 @@
   </div>
 
   <!-- Product -->
-  <div class="pd-grid" *ngIf="!loading() && product() as p">
-    <div class="media">
-      <img *ngIf="p.imageUrl" [src]="p.imageUrl" [alt]="p.title" (error)="onImgError($event)" />
-      <div class="no-img" *ngIf="!p.imageUrl">{{ p.title.charAt(0) }}</div>
+  <article class="pd-shell" *ngIf="!loading() && product() as p">
+    <div class="gallery-panel">
+      <div class="media">
+        <img *ngIf="p.imageUrl" [src]="p.imageUrl" [alt]="p.title" (error)="onImgError($event)" />
+        <div class="no-img" *ngIf="!p.imageUrl">{{ p.title.charAt(0) }}</div>
+      </div>
+
+      <div class="media-notes">
+        <span>{{ p.categoryName }}</span>
+        <span *ngIf="p.color">{{ L('Color', 'اللون') }}: {{ p.color }}</span>
+        <span *ngIf="p.size">{{ L('Size', 'المقاس') }}: {{ p.size }}</span>
+      </div>
     </div>
 
-    <div class="info">
-      <p class="cat">{{ p.categoryName }}</p>
-      <h1>{{ p.title }}</h1>
-      <button class="store-link" (click)="openStore()" type="button">🏬 {{ p.storeName }}</button>
+    <div class="purchase-panel info">
+      <div class="product-heading">
+        <p class="cat">{{ p.categoryName }}</p>
+        <h1>{{ p.title }}</h1>
+        <button class="store-link" (click)="openStore()" type="button">🏬 {{ p.storeName }}</button>
+      </div>
 
-      <p class="price">{{ p.price }} {{ L('EGP', 'ج.م') }}</p>
-
-      <p class="stock" [class.out]="!inStock">
-        {{ inStock ? L('In stock', 'متوفر') + ' · ' + p.count : L('Out of stock', 'غير متوفر') }}
-      </p>
+      <div class="price-stock">
+        <div class="price-wrap">
+          <p class="price">{{ displayPrice(p) }} {{ L('EGP', 'ج.م') }}</p>
+          <p class="old-price" *ngIf="p.isOnSale && p.originalPrice">{{ p.originalPrice }} {{ L('EGP', 'ج.م') }}</p>
+          <span class="sale-pill" *ngIf="p.isOnSale">{{ L('Sale now', 'خصم الآن') }}</span>
+        </div>
+        <p class="stock" [class.out]="!inStock">
+          {{ inStock ? L('In stock', 'متوفر') + ' · ' + p.count : L('Out of stock', 'غير متوفر') }}
+        </p>
+      </div>
 
       <p class="desc" *ngIf="p.description">{{ p.description }}</p>
 
-      <ul class="attrs">
-        <li *ngIf="p.brand"><b>{{ L('Brand', 'الماركة') }}:</b> {{ p.brand }}</li>
-        <li *ngIf="p.color"><b>{{ L('Color', 'اللون') }}:</b> {{ p.color }}</li>
-        <li *ngIf="p.size"><b>{{ L('Size', 'المقاس') }}:</b> {{ p.size }}</li>
-        <li *ngIf="p.gender"><b>{{ L('Gender', 'النوع') }}:</b> {{ p.gender }}</li>
+      <ul class="attrs spec-list">
+        <li *ngIf="p.brand"><span>{{ L('Brand', 'الماركة') }}</span><b>{{ p.brand }}</b></li>
+        <li *ngIf="p.color"><span>{{ L('Color', 'اللون') }}</span><b>{{ p.color }}</b></li>
+        <li *ngIf="p.size"><span>{{ L('Size', 'المقاس') }}</span><b>{{ p.size }}</b></li>
+        <li *ngIf="p.gender"><span>{{ L('Gender', 'النوع') }}</span><b>{{ p.gender }}</b></li>
       </ul>
 
-      <ng-container *ngIf="canUseShopperActions(); else businessProductActions">
-        <button class="reserve-btn" [disabled]="!inStock" (click)="addToCart()">
-          {{ inStock ? L('Reserve item', 'احجز المنتج') : L('Unavailable', 'غير متاح') }}
-        </button>
-        <button class="wishlist-btn" type="button" [disabled]="savingWishlist()" (click)="addToWishlist()">
-          {{ savingWishlist() ? L('Saving...', 'جار الحفظ...') : L('Save to wishlist', 'احفظ في المفضلة') }}
-        </button>
-      </ng-container>
-      <ng-template #businessProductActions>
-        <p class="business-note">
-          {{ L('Business accounts can inspect catalog items, but reservations and wishlists are for shopper accounts.', 'حسابات التجار يمكنها مراجعة المنتجات، لكن الحجز والمفضلة مخصصان لحسابات المتسوقين.') }}
+      <div class="action-panel">
+        <ng-container *ngIf="canUseShopperActions(); else businessProductActions">
+          <button class="reserve-btn" [disabled]="!inStock" (click)="addToCart()">
+            {{ inStock ? L('Reserve item', 'احجز المنتج') : L('Unavailable', 'غير متاح') }}
+          </button>
+          <button class="wishlist-btn" type="button" [disabled]="savingWishlist()" (click)="addToWishlist()">
+            {{ savingWishlist() ? L('Saving...', 'جار الحفظ...') : L('Save to wishlist', 'احفظ في المفضلة') }}
+          </button>
+          <button class="alert-btn" type="button" [disabled]="savingAlert()" (click)="createProductAlert()">
+            {{
+              savingAlert()
+                ? L('Saving alert...', 'جار حفظ التنبيه...')
+                : inStock
+                  ? L('Alert me on price drop', 'نبّهني عند انخفاض السعر')
+                  : L('Alert me when available', 'نبّهني عند التوفر')
+            }}
+          </button>
+        </ng-container>
+        <ng-template #businessProductActions>
+          <p class="business-note">
+            {{ L('Business accounts can inspect catalog items, but reservations and wishlists are for shopper accounts.', 'حسابات التجار يمكنها مراجعة المنتجات، لكن الحجز والمفضلة مخصصان لحسابات المتسوقين.') }}
+          </p>
+        </ng-template>
+      </div>
+
+      <section
+        class="store-visit-card"
+        *ngIf="storeDetails() as s"
+        [attr.aria-label]="L('Store visit details', 'تفاصيل زيارة المحل')">
+        <div class="visit-copy">
+          <span>{{ L('Visit this shop', 'زيارة المحل') }}</span>
+          <strong>{{ s.name }}</strong>
+          <small *ngIf="s.address">📍 {{ s.address }}</small>
+        </div>
+
+        <div class="visit-actions">
+          <button
+            class="distance-btn"
+            *ngIf="s.latitude != null && s.longitude != null"
+            type="button"
+            (click)="showDistance()"
+            [disabled]="locatingDistance()">
+            {{ locatingDistance() ? L('Checking...', 'بنحسب...') : L('Show distance', 'اعرض المسافة') }}
+          </button>
+          <button
+            class="whatsapp-btn"
+            *ngIf="s.whatsAppPhone"
+            type="button"
+            (click)="openWhatsApp()">
+            {{ L('Ask on WhatsApp', 'اسأل على واتساب') }}
+          </button>
+          <span class="distance-pill" *ngIf="distanceKm() != null">{{ distanceLabel() }}</span>
+        </div>
+
+        <p class="distance-error" *ngIf="distanceError()" role="alert">{{ distanceError() }}</p>
+        <p class="distance-note" *ngIf="s.latitude == null || s.longitude == null">
+          {{ L('Directions use the store address. Exact distance appears when the store pins a map point.', 'الاتجاهات بتستخدم عنوان المحل. المسافة الدقيقة تظهر لما المحل يحدد موقعه على الخريطة.') }}
         </p>
-      </ng-template>
+
+        <app-store-map
+          [compact]="true"
+          [lat]="s.latitude"
+          [lng]="s.longitude"
+          [name]="s.name"
+          [address]="s.address || ''"></app-store-map>
+      </section>
     </div>
-  </div>
+  </article>
 
   <section class="reviews-panel" *ngIf="!loading() && product() as p" aria-labelledby="reviews-title">
     <div class="reviews-head">
@@ -103,6 +171,29 @@
           {{ L('Delete', 'حذف') }}
         </button>
       </article>
+    </div>
+  </section>
+
+  <section class="related-panel" *ngIf="!loading() && related().length" aria-labelledby="related-title">
+    <div class="related-head">
+      <p class="cat">{{ L('More from this store', 'المزيد من هذا المحل') }}</p>
+      <h2 id="related-title">{{ product()?.storeName }}</h2>
+    </div>
+    <div class="related-grid">
+      <button class="related-card" *ngFor="let r of related()" type="button" (click)="openRelated(r)">
+        <span class="thumb">
+          <img *ngIf="r.imageUrl" [src]="r.imageUrl" [alt]="r.title" (error)="onImgError($event)" />
+          <span class="no-img" *ngIf="!r.imageUrl" aria-hidden="true">{{ r.title.charAt(0) }}</span>
+        </span>
+        <span class="r-info">
+          <span class="r-title">{{ r.title }}</span>
+          <span class="r-cat">{{ r.categoryName }}</span>
+          <span class="r-price">
+            <s *ngIf="r.isOnSale && r.originalPrice">{{ r.originalPrice }}</s>
+            {{ displayPrice(r) }} {{ L('EGP', 'ج.م') }}
+          </span>
+        </span>
+      </button>
     </div>
   </section>
 

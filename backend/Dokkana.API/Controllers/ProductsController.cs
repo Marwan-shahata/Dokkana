@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Dokkana.BLL.DTOs.Monetization;
 using Dokkana.BLL.DTOs.Product;
 using Dokkana.BLL.Managers;
 using Dokkana.Common;
@@ -12,10 +13,12 @@ namespace Dokkana.API.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly IProductManager _productManager;
+        private readonly IMonetizationManager _monetization;
 
-        public ProductsController(IProductManager productManager)
+        public ProductsController(IProductManager productManager, IMonetizationManager monetization)
         {
             _productManager = productManager;
+            _monetization = monetization;
         }
 
         // Public: browse products with filtering + pagination.
@@ -73,7 +76,7 @@ namespace Dokkana.API.Controllers
 
         // StoreOwner: update their own product. Admin may update any product.
         [HttpPut("{id:int}")]
-        [Authorize(Policy = "StoreOwnerOnly")]
+        [Authorize(Policy = "AdminOrStoreOwner")]
         public async Task<IActionResult> Update(int id, ProductUpdateDTO dto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
@@ -89,6 +92,28 @@ namespace Dokkana.API.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var result = await _productManager.DeleteAsync(id, userId, User.IsInRole("Admin"));
             return ToActionResult(result, "Product deleted.");
+        }
+
+        // StoreOwner/Admin: schedule a simple flash sale. The sale price is
+        // visible on product cards and details; followers are notified when it
+        // starts immediately.
+        [HttpPut("{id:int}/sale")]
+        [Authorize(Policy = "AdminOrStoreOwner")]
+        public async Task<IActionResult> ScheduleSale(int id, ScheduleSaleDTO dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var result = await _monetization.ScheduleSaleAsync(id, dto, userId, User.IsInRole("Admin"));
+            return ToActionResult(result, "Sale scheduled.");
+        }
+
+        // Demo AI auto-tagging: turns an uploaded image filename/URL into editable
+        // product fields, so the merchant form has a visible AI-assisted workflow.
+        [HttpPost("ai-suggest")]
+        [Authorize(Policy = "StoreOwnerOnly")]
+        public async Task<IActionResult> AiSuggest(AiProductSuggestionRequestDTO dto)
+        {
+            var suggestion = await _monetization.SuggestProductFieldsAsync(dto);
+            return Ok(GeneralResult<AiProductSuggestionDTO>.Ok(suggestion));
         }
 
         // Maps an ownership outcome to the right HTTP response.

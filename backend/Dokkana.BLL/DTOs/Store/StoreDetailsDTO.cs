@@ -13,6 +13,12 @@ namespace Dokkana.BLL.DTOs.Store
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
         public bool IsApproved { get; set; }
+        // Commercial plan as a string ("Free" / "Pro") for the frontend.
+        public string Tier { get; set; } = "Free";
+        public string? SubscriptionStatus { get; set; }
+        public DateTime? SubscriptionRenewsAt { get; set; }
+        public decimal WalletBalance { get; set; }
+        public string? WhatsAppPhone { get; set; }
         public string? OwnerName { get; set; }
         public int ProductCount { get; set; }
     }

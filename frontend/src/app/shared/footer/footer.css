@@ -80,8 +80,9 @@
   text-transform: none;
 }
 
-.foot-col button {
+.foot-col a {
   display: block;
+  width: fit-content;
   background: none;
   border: none;
   color: var(--on-drench-soft);
@@ -92,16 +93,16 @@
   transition: color 0.25s, transform 0.25s;
 }
 
-[dir=rtl] .foot-col button {
+[dir=rtl] .foot-col a {
   font-family: var(--ar);
 }
 
-.foot-col button:hover {
+.foot-col a:hover {
   color: var(--ochre);
   transform: translateX(3px);
 }
 
-[dir=rtl] .foot-col button:hover {
+[dir=rtl] .foot-col a:hover {
   transform: translateX(-3px);
 }
 

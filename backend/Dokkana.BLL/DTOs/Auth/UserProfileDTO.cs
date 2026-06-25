@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Dokkana.BLL.DTOs.Auth
 {
     public class UserProfileDTO
@@ -23,5 +25,16 @@ namespace Dokkana.BLL.DTOs.Auth
         public string? Gender { get; set; }
         public string? Location { get; set; }
         public string? AvatarUrl { get; set; }
+    }
+
+    public class ChangePasswordDTO
+    {
+        [Required]
+        public string CurrentPassword { get; set; } = string.Empty;
+
+        [Required]
+        [MinLength(6)]
+        [MaxLength(100)]
+        public string NewPassword { get; set; } = string.Empty;
     }
 }

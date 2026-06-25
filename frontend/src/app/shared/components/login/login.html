@@ -8,11 +8,7 @@
   [attr.aria-label]="L('Sign in', 'تسجيل الدخول')"
 >
   <!-- Decorative branded background scene -->
-  <div class="auth-scene" aria-hidden="true">
-    <div class="auth-orb auth-orb--clay"></div>
-    <div class="auth-orb auth-orb--nile"></div>
-    <div class="auth-orb auth-orb--ochre"></div>
-  </div>
+  <div class="auth-scene" aria-hidden="true"></div>
 
   <div class="modal-panel" [class.is-open]="isOpen">
     <button class="modal-close" type="button" (click)="close()" [attr.aria-label]="L('Close', 'إغلاق')">

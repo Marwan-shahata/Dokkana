@@ -11,6 +11,11 @@ namespace Dokkana.BLL.DTOs.Product
         public decimal Price { get; set; }
         public int Count { get; set; }
         public string? ImageUrl { get; set; }
+        public decimal? OriginalPrice { get; set; }
+        public decimal? SalePrice { get; set; }
+        public DateTime? SaleStartsAt { get; set; }
+        public DateTime? SaleEndsAt { get; set; }
+        public bool IsOnSale { get; set; }
         public string? Color { get; set; }
         public string? Size { get; set; }
         public string? Brand { get; set; }

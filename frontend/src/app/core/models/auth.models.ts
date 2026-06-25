@@ -32,8 +32,16 @@ export interface AuthResponse {
   lastName: string;
   role: UserRole;
   token: string;
+  tokenExpiresAt: string;
+  refreshToken: string;
+  refreshTokenExpiresAt: string;
   storeId?: number | null;
   storeName?: string | null;
+}
+
+export interface RefreshTokenRequest {
+  userId: string;
+  refreshToken: string;
 }
 
 export interface UserProfileDTO {
@@ -59,7 +67,12 @@ export interface UserProfileUpdateRequest {
   avatarUrl?: string | null;
 }
 
-// The slice of AuthResponse we keep in memory/localStorage to describe the session.
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+// The slice of AuthResponse we keep in memory/sessionStorage to describe the session.
 export interface CurrentUser {
   userId: string;
   email: string;

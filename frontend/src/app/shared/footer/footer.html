@@ -12,18 +12,21 @@
           </span>
           <span class="brand-text"><b>Dokkana</b><span class="ar">دكانة</span></span>
         </div>
-        <p>{{ L('AI-powered discovery for shoppers. AI-powered insights for store owners.', 'اكتشاف بالذكاء الاصطناعي للمتسوقين. رؤى ذكية لأصحاب المحلات.') }}</p>
+        <p>{{ L('AI-powered discovery for shoppers. AI-powered insights for store owners.', 'اكتشاف ذكي للناس اللي بتدور على لبس. ورؤى واضحة لأصحاب المحلات.') }}</p>
       </div>
 
       <div class="foot-col" *ngFor="let c of cols">
         <h4>{{ L(c.h[0], c.h[1]) }}</h4>
-        <button *ngFor="let l of c.links">{{ L(l[0], l[1]) }}</button>
+        <ng-container *ngFor="let l of c.links">
+          <a *ngIf="l.route" [routerLink]="l.route">{{ L(l.en, l.ar) }}</a>
+          <a *ngIf="l.href" [href]="l.href" target="_blank" rel="noopener noreferrer">{{ L(l.en, l.ar) }}</a>
+        </ng-container>
       </div>
     </div>
 
     <div class="foot-bot">
       <span>© {{ year }} Dokkana · دكانة</span>
-      <span>{{ L('Made with ♥ in Egypt · ITI Graduation 2026', 'صُنع بـ ♥ في مصر · تخرج ITI 2026') }}</span>
+      <span>{{ L('Made with ♥ in Egypt · ITI Graduation 2026', 'اتعمل بـ ♥ في مصر · مشروع تخرج ITI 2026') }}</span>
     </div>
   </div>
 </footer>

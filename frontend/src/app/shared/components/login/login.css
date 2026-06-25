@@ -5,8 +5,6 @@
   --hibiscus: oklch(0.540 0.170 22); --border: oklch(0.855 0.018 72); --paper: oklch(0.991 0.010 82);
   --shadow-lg: 0 8px 16px oklch(0.20 0.02 48 / 0.12), 0 40px 96px oklch(0.18 0.02 48 / 0.26);
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
-  --sans: "Manrope", system-ui, sans-serif; --serif: "Bodoni Moda", Georgia, serif;
-  --ar: "IBM Plex Sans Arabic", sans-serif;
   display: contents; font-family: var(--sans); -webkit-font-smoothing: antialiased;
 }
 /* Dark theme — follow the global [data-theme="dark"] palette instead of staying light. */
@@ -25,9 +23,9 @@
 }
 .modal-backdrop.is-open {
   background:
-    radial-gradient(120% 80% at 50% -10%, oklch(0.30 0.06 45 / 0.55), transparent 56%),
-    radial-gradient(100% 90% at 50% 115%, oklch(0.30 0.05 200 / 0.30), transparent 55%),
-    oklch(0.12 0.012 48 / 0.74);
+    linear-gradient(90deg, oklch(0.10 0.014 48 / 0.86), oklch(0.13 0.016 48 / 0.66) 48%, oklch(0.18 0.024 58 / 0.50)),
+    linear-gradient(180deg, oklch(0.12 0.012 48 / 0.58), oklch(0.11 0.012 48 / 0.86)),
+    url('/hero.jpg') center / cover no-repeat;
   backdrop-filter: blur(7px) saturate(0.92);
   pointer-events: auto;
 }
@@ -39,7 +37,26 @@
   padding: 0; display: block; pointer-events: auto; transition: none;
 }
 .modal-backdrop.embedded .auth-scene { display: none; }
-.modal-backdrop.embedded .modal-panel { margin: 0 auto; }
+/* Split-screen: the card sits flush in AuthPage's form column (branding and
+   the welcome line live in the left panel, so drop the card's own chrome). */
+.modal-backdrop.embedded .modal-panel {
+  margin: 0 auto;
+  max-width: 440px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 6px 4px;
+  max-height: none;
+  overflow: visible;
+  opacity: 1;
+  transform: none;
+}
+.modal-backdrop.embedded .modal-brand,
+.modal-backdrop.embedded .modal-close,
+.modal-backdrop.embedded .eyebrow,
+.modal-backdrop.embedded .modal-sub { display: none; }
+.modal-backdrop.embedded .modal-head { margin-bottom: 18px; }
 
 /* Branded background scene */
 .auth-scene {
@@ -51,26 +68,6 @@
   content: ""; position: absolute; inset: 0;
   background-image: radial-gradient(oklch(1 0 0 / 0.04) 0.6px, transparent 0.7px);
   background-size: 4px 4px; mix-blend-mode: overlay; opacity: 0.5;
-}
-.auth-orb { position: absolute; border-radius: 50%; filter: blur(72px); will-change: transform; }
-.auth-orb--clay {
-  width: 540px; height: 540px; top: -170px; inset-inline-start: -130px;
-  background: radial-gradient(circle, oklch(0.64 0.16 42 / 0.5), transparent 68%);
-  animation: orbFloat 15s var(--ease) infinite;
-}
-.auth-orb--nile {
-  width: 440px; height: 440px; bottom: -150px; inset-inline-end: -110px;
-  background: radial-gradient(circle, oklch(0.5 0.09 200 / 0.42), transparent 70%);
-  animation: orbFloat 19s var(--ease) infinite reverse;
-}
-.auth-orb--ochre {
-  width: 320px; height: 320px; top: 42%; inset-inline-end: 16%;
-  background: radial-gradient(circle, oklch(0.74 0.12 78 / 0.26), transparent 70%);
-  animation: orbFloat 17s var(--ease) infinite;
-}
-@keyframes orbFloat {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(22px, -28px); }
 }
 
 .modal-panel {
@@ -129,7 +126,7 @@ form { display: flex; flex-direction: column; }
 .input-wrap { position: relative; display: flex; align-items: center; }
 .input-wrap input {
   width: 100%; border: 1.5px solid var(--border); background: var(--porcelain);
-  border-radius: 11px; padding: 12px 14px; padding-inline-start: 40px;
+  border-radius: 12px; padding: 13px 15px; padding-inline-start: 42px;
   font-family: var(--sans); font-size: 14px; color: var(--ink); outline: none;
   transition: border-color 0.25s var(--ease), background 0.25s var(--ease), box-shadow 0.25s var(--ease);
 }
@@ -159,11 +156,13 @@ form { display: flex; flex-direction: column; }
 .submit-btn {
   display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; border: none;
   background: linear-gradient(135deg, var(--clay), var(--clay-deep)); color: var(--paper);
-  font-family: var(--sans); font-weight: 700; font-size: 15px; padding: 14px 22px; border-radius: 13px;
+  font-family: var(--sans); font-weight: 700; font-size: 15px; padding: 15px 24px; border-radius: 13px;
   cursor: pointer; box-shadow: 0 5px 18px oklch(0.62 0.15 42 / 0.28); position: relative; overflow: hidden;
   transition: background 0.3s var(--ease), transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
 }
 .submit-btn::before { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, oklch(1 0 0 / 0.08), transparent 55%); pointer-events: none; }
+.submit-btn::after { content: ""; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, oklch(1 0 0 / 0.28) 50%, transparent 70%); transform: translateX(-120%); transition: transform 0.6s var(--ease); pointer-events: none; }
+.submit-btn:hover:not(:disabled)::after { transform: translateX(120%); }
 .submit-btn svg { width: 17px; height: 17px; transition: transform 0.3s var(--ease); flex-shrink: 0; }
 .submit-btn:hover:not(:disabled) { background: linear-gradient(135deg, oklch(0.60 0.155 43), var(--clay-deep)); transform: translateY(-2px); box-shadow: 0 9px 24px oklch(0.60 0.15 42 / 0.36); }
 .submit-btn:hover:not(:disabled) svg:not(.spinner) { transform: translateX(4px); }
@@ -185,5 +184,6 @@ form { display: flex; flex-direction: column; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .auth-orb { animation: none !important; }
+  .modal-backdrop,
+  .auth-scene { transition: none !important; }
 }

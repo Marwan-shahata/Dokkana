@@ -21,14 +21,28 @@
       <p class="addr" *ngIf="s.address">📍 {{ s.address }}</p>
       <p class="desc" *ngIf="s.description">{{ s.description }}</p>
       <div class="badges">
+        <span class="badge pro" *ngIf="s.tier === 'Pro'">★ {{ L('Pro store', 'متجر مميز') }}</span>
         <span class="badge">{{ s.productCount }} {{ L('products', 'منتج') }}</span>
         <span class="badge owner" *ngIf="s.ownerName">{{ s.ownerName }}</span>
       </div>
-      <button *ngIf="canUseShopperActions()" class="save-store" type="button" [disabled]="savingStore()" (click)="saveStore()">
-        {{ savingStore() ? L('Saving...', 'جار الحفظ...') : L('Save store', 'احفظ المحل') }}
-      </button>
+      <div class="store-actions-main">
+        <button *ngIf="canUseShopperActions()" class="save-store" type="button" [disabled]="savingStore()" (click)="saveStore()">
+          {{ savingStore() ? L('Saving...', 'جار الحفظ...') : L('Save store', 'احفظ المحل') }}
+        </button>
+        <button *ngIf="s.whatsAppPhone" class="whatsapp-store" type="button" (click)="openWhatsApp()">
+          {{ L('WhatsApp store', 'راسل المحل') }}
+        </button>
+      </div>
     </div>
   </header>
+
+  <!-- Location -->
+  <section class="store-locate" *ngIf="!loading() && store() as s">
+    <ng-container *ngIf="(s.latitude != null && s.longitude != null) || s.address">
+      <h2 class="section-title">{{ L('Find this store', 'لاقي المحل') }}</h2>
+      <app-store-map [lat]="s.latitude" [lng]="s.longitude" [name]="s.name" [address]="s.address || ''"></app-store-map>
+    </ng-container>
+  </section>
 
   <!-- Products -->
   <h2 class="section-title" *ngIf="!loading() && !error()">{{ L('Products', 'المنتجات') }}</h2>
@@ -49,7 +63,11 @@
       <span class="p-info">
         <span class="p-title">{{ p.title }}</span>
         <span class="p-cat">{{ p.categoryName }}</span>
-        <span class="p-price">{{ p.price }} {{ L('EGP', 'ج.م') }}</span>
+        <span class="p-price">
+          <s *ngIf="p.isOnSale && p.originalPrice">{{ p.originalPrice }}</s>
+          {{ displayPrice(p) }} {{ L('EGP', 'ج.م') }}
+        </span>
+        <span class="sale-tag" *ngIf="p.isOnSale">{{ L('Sale', 'خصم') }}</span>
       </span>
     </button>
   </div>

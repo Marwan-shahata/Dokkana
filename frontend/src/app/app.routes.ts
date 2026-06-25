@@ -14,15 +14,20 @@ export const routes: Routes = [
   { path: 'stores/:id', component: StoreDetailPage },
   { path: 'products/:id', component: ProductDetailPage },
   {
-    path: 'profile',
-    loadComponent: () => import('./pages/profile/profile').then(m => m.Profile),
+    path: 'ai-search',
+    loadComponent: () => import('./features/ai-search/ai-search').then(m => m.AiSearchPage),
+  },
+  {
+    path: 'discover',
+    loadComponent: () => import('./pages/discover/discover').then(m => m.DiscoverPage),
     canActivate: [roleGuard],
     data: { roles: ['Shopper'] },
   },
   {
-    path: 'cart',
-    redirectTo: '',
-    pathMatch: 'full',
+    path: 'profile',
+    loadComponent: () => import('./pages/profile/profile').then(m => m.Profile),
+    canActivate: [roleGuard],
+    data: { roles: ['Shopper'] },
   },
   {
     path: 'admin',
@@ -35,5 +40,9 @@ export const routes: Routes = [
     loadComponent: () => import('./features/merchant/merchant-dashboard').then(m => m.MerchantDashboard),
     canActivate: [roleGuard],
     data: { roles: ['StoreOwner'] },
+  },
+  {
+    path: '**',
+    loadComponent: () => import('./pages/not-found/not-found').then(m => m.NotFound),
   },
 ];

@@ -11,6 +11,7 @@ import {
   ReviewCountDTO,
   WishlistItemDTO,
 } from '../models/engagement.models';
+import { toNullableMediaUrl } from './media-url';
 
 @Injectable({ providedIn: 'root' })
 export class EngagementService {
@@ -20,7 +21,10 @@ export class EngagementService {
   getWishlist(): Observable<WishlistItemDTO[]> {
     return this.http
       .get<ApiResult<WishlistItemDTO[]>>(`${this.base}/wishlist`)
-      .pipe(map(res => res.data ?? []));
+      .pipe(map(res => (res.data ?? []).map(item => ({
+        ...item,
+        imageUrl: toNullableMediaUrl(item.imageUrl),
+      }))));
   }
 
   addToWishlist(productId: number): Observable<ApiResult<unknown>> {
@@ -34,7 +38,10 @@ export class EngagementService {
   getSavedStores(): Observable<FollowedStoreDTO[]> {
     return this.http
       .get<ApiResult<FollowedStoreDTO[]>>(`${this.base}/saved-stores`)
-      .pipe(map(res => res.data ?? []));
+      .pipe(map(res => (res.data ?? []).map(store => ({
+        ...store,
+        logoUrl: toNullableMediaUrl(store.logoUrl),
+      }))));
   }
 
   followStore(storeId: number): Observable<ApiResult<unknown>> {

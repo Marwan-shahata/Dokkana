@@ -57,6 +57,17 @@ export interface OrderAdminSummaryDTO {
   customerEmail: string;
 }
 
+// Store-owner order view (items filtered to this store). Mirrors StoreOrderDTO.
+export interface StoreOrderDTO {
+  id: number;
+  createdAt: string;
+  status: string;
+  pickupCode: string;
+  customerName: string;
+  storeTotal: number;
+  items: OrderItemDTO[];
+}
+
 // Admin user list. Mirrors UserAdminDTO.
 export interface UserAdminDTO {
   id: string;
@@ -64,4 +75,5 @@ export interface UserAdminDTO {
   email: string;
   role: 'Admin' | 'StoreOwner' | 'Shopper';
   isDisabled: boolean;
+  createdAt: string;
 }

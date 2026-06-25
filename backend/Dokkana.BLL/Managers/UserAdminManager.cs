@@ -30,7 +30,8 @@ namespace Dokkana.BLL.Managers
                     Email = u.Email ?? string.Empty,
                     Role = roles.FirstOrDefault() ?? "Shopper",
                     // A user is "disabled" when locked out into the future.
-                    IsDisabled = u.LockoutEnd.HasValue && u.LockoutEnd.Value > DateTimeOffset.UtcNow
+                    IsDisabled = u.LockoutEnd.HasValue && u.LockoutEnd.Value > DateTimeOffset.UtcNow,
+                    CreatedAt = u.CreatedAt
                 });
             }
 

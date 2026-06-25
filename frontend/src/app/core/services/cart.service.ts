@@ -4,7 +4,6 @@ import { CartDTO } from '../models/order.models';
 export interface CartItem {
   id: number;
   name: string;
-  nameAr: string;
   store: string;
   price: number;
   image: string;
@@ -20,7 +19,6 @@ export class CartService {
     this.items.set(cart.items.map(i => ({
       id: i.productId,
       name: i.title,
-      nameAr: i.title,
       store: i.storeName,
       price: i.unitPrice,
       image: i.imageUrl ?? '',
@@ -33,15 +31,6 @@ export class CartService {
     this.items.update(list => [...list, item]);
     this.count.update(v => v + 1);
     this.total.update(v => v + item.price);
-  }
-
-  removeAt(index: number): void {
-    const removed = this.items()[index];
-    this.items.update(list => list.filter((_, i) => i !== index));
-    if (removed) {
-      this.count.update(v => Math.max(0, v - 1));
-      this.total.update(v => Math.max(0, v - removed.price));
-    }
   }
 
   clear(): void {

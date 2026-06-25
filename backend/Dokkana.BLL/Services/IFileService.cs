@@ -9,8 +9,17 @@ namespace Dokkana.BLL.Services
         Task<string> UploadAsync(Stream fileStream, string fileName, string folder);
 
         /// <summary>
-        /// Validates file extension is an allowed image type.
+        /// Validates extension, declared content type, and image signature.
+        /// Resets stream position when the stream supports seeking.
         /// </summary>
-        bool IsValidImage(string fileName);
+        Task<bool> IsValidImageAsync(Stream fileStream, string fileName, string? contentType);
+
+        /// <summary>
+        /// Maps a stored upload URL (e.g. "/uploads/products/x.jpg" or an absolute
+        /// URL containing that path) back to the local file and returns it as a
+        /// base64 "data:" URL for multimodal AI calls. Returns null when the URL is
+        /// not a local upload or the file is missing/unsupported.
+        /// </summary>
+        Task<string?> TryReadImageAsDataUrlAsync(string? url, CancellationToken cancellationToken = default);
     }
 }

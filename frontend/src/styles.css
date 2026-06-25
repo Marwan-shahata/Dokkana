@@ -50,9 +50,9 @@
   --ease: cubic-bezier(.16, 1, .3, 1);
   --ease-out: cubic-bezier(.22, 1, .36, 1);
 
-  --sans: "Segoe UI", Inter, system-ui, sans-serif;
-  --serif: Georgia, "Times New Roman", serif;
-  --ar: "Segoe UI", Tahoma, Arial, sans-serif;
+  --sans: "Plus Jakarta Sans", "Segoe UI", Inter, system-ui, sans-serif;
+  --serif: "Fraunces", Georgia, "Times New Roman", serif;
+  --ar: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
 
   --maxw: 1200px;
 }

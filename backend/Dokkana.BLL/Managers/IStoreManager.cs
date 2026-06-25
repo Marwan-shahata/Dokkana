@@ -1,5 +1,6 @@
 using Dokkana.BLL.DTOs.Store;
 using Dokkana.Common;
+using Dokkana.DAL.Models;
 
 namespace Dokkana.BLL.Managers
 {
@@ -16,5 +17,8 @@ namespace Dokkana.BLL.Managers
         Task<OwnershipResult> UpdateAsync(int id, StoreUpdateDTO dto, string userId, bool isAdmin);
         Task<bool> DeleteAsync(int id);
         Task<bool> ApproveAsync(int id);
+
+        // Ownership-guarded plan change (Free / Pro). Admins bypass the owner check.
+        Task<OwnershipResult> SetTierAsync(int id, StoreTier tier, string userId, bool isAdmin);
     }
 }

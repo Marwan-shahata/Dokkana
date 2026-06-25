@@ -6,14 +6,16 @@ import { AuthService } from '../../core/services/auth.service';
 import { EngagementService } from '../../core/services/engagement.service';
 import { StoreService } from '../../core/services/store.service';
 import { ProductService } from '../../core/services/product.service';
+import { MonetizationService } from '../../core/services/monetization.service';
 import { ProductListItem, StoreDetails } from '../../core/models/catalog.models';
+import { StoreMapComponent } from '../../shared/components/store-map/store-map';
 
 // Store details page (/stores/:id): shows the store header plus its products,
 // backed by GET /api/stores/{id} and GET /api/products/store/{storeId}.
 @Component({
   selector: 'app-store-detail',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, StoreMapComponent],
   templateUrl: './store-detail.html',
   styleUrl: './store-detail.css',
 })
@@ -24,6 +26,7 @@ export class StoreDetailPage implements OnInit {
   private engagement = inject(EngagementService);
   private storeService = inject(StoreService);
   private productService = inject(ProductService);
+  private monetization = inject(MonetizationService);
   lang = inject(LanguageService);
 
   readonly store = signal<StoreDetails | null>(null);
@@ -108,12 +111,33 @@ export class StoreDetailPage implements OnInit {
     });
   }
 
+  openWhatsApp(): void {
+    const store = this.store();
+    if (!store?.whatsAppPhone) return;
+    this.monetization.createLead({ storeId: store.id, type: 'WhatsApp' }).subscribe({ error: () => {} });
+    const phone = store.whatsAppPhone.replace(/[^\d]/g, '');
+    if (!phone) {
+      this.showToast(this.L('This store has no valid WhatsApp number yet.', 'المحل لم يضف رقم واتساب صحيح بعد.'));
+      return;
+    }
+
+    const message = encodeURIComponent(this.L(
+      `Hi ${store.name}, I found your store on Dokkana. Can I ask about your products?`,
+      `أهلاً ${store.name}، لقيت المحل على دكانة. ممكن أسأل عن المنتجات؟`,
+    ));
+    window.open(`https://wa.me/${phone}?text=${message}`, '_blank', 'noopener,noreferrer');
+  }
+
   back(): void {
     this.router.navigate(['/stores']);
   }
 
   onImgError(e: Event): void {
     (e.target as HTMLElement).style.visibility = 'hidden';
+  }
+
+  displayPrice(p: ProductListItem): number {
+    return p.isOnSale && p.salePrice != null ? p.salePrice : p.price;
   }
 
   private toastTimer: ReturnType<typeof setTimeout> | undefined;

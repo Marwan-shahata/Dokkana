@@ -17,6 +17,10 @@ export interface ProductListItem {
   price: number;
   count: number;
   imageUrl?: string | null;
+  originalPrice?: number | null;
+  salePrice?: number | null;
+  saleEndsAt?: string | null;
+  isOnSale?: boolean;
   color?: string | null;
   size?: string | null;
   brand?: string | null;
@@ -34,6 +38,11 @@ export interface ProductDetails {
   price: number;
   count: number;
   imageUrl?: string | null;
+  originalPrice?: number | null;
+  salePrice?: number | null;
+  saleStartsAt?: string | null;
+  saleEndsAt?: string | null;
+  isOnSale?: boolean;
   color?: string | null;
   size?: string | null;
   brand?: string | null;
@@ -52,6 +61,10 @@ export interface Category {
   imageUrl?: string | null;
 }
 
+// A store's commercial plan. Mirrors Dokkana.DAL.Models.StoreTier
+// (serialized by the API as the string "Free" or "Pro").
+export type StoreTier = 'Free' | 'Pro';
+
 // Mirrors StoreDTO.
 export interface Store {
   id: number;
@@ -62,6 +75,12 @@ export interface Store {
   latitude?: number | null;
   longitude?: number | null;
   isApproved: boolean;
+  tier?: StoreTier;
+  subscriptionStatus?: string | null;
+  subscriptionRenewsAt?: string | null;
+  walletBalance?: number;
+  whatsAppPhone?: string | null;
+  productCount?: number;
 }
 
 // Mirrors StoreDetailsDTO.
@@ -73,9 +92,11 @@ export interface StoreDetails extends Store {
 export interface StoreCreateRequest {
   name: string;
   description?: string | null;
+  logoUrl?: string | null;
   address?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  whatsAppPhone?: string | null;
 }
 
 export interface StoreUpdateRequest {
@@ -85,6 +106,12 @@ export interface StoreUpdateRequest {
   address?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  whatsAppPhone?: string | null;
+}
+
+// Body for PUT /api/stores/{id}/tier — sets the store's plan.
+export interface StoreTierUpdateRequest {
+  tier: StoreTier;
 }
 
 // Mirrors CategoryCreateDTO (used for both create and update).
@@ -133,15 +160,96 @@ export interface ProductUpdateRequest {
   categoryId?: number | null;
 }
 
-// Mirrors AiSearchRequestDTO / AiSearchResponseDTO.
+// Mirrors AiSearchRequestDto (Dokkana.BLL/DTOs/AI). Natural-language shopping
+// search in Arabic / English / Franco-Arabic.
 export interface AiSearchRequest {
   query: string;
-  storeId?: number;
+  includeWeb?: boolean;
+  pageNumber?: number;
+  pageSize?: number;
+  userLat?: number;
+  userLng?: number;
 }
 
+// Mirrors AiSearchIntentDto — what the AI understood from the query.
+export interface AiSearchIntent {
+  rawQuery: string;
+  normalizedArabic?: string | null;
+  normalizedEnglish?: string | null;
+  searchTerms: string[];
+  productType?: string | null;
+  category?: string | null;
+  color?: string | null;
+  size?: string | null;
+  gender?: string | null;
+  brand?: string | null;
+  minPrice?: number | null;
+  maxPrice?: number | null;
+  languageDetected: string;
+}
+
+// Mirrors AiProductResultDto — a matched product from the local catalog.
+export interface AiProductResult {
+  id: number;
+  title: string;
+  price: number;
+  color?: string | null;
+  size?: string | null;
+  storeName?: string | null;
+  imageUrl?: string | null;
+  originalPrice?: number | null;
+  salePrice?: number | null;
+  isOnSale?: boolean;
+  // Where to buy + how far (km) from the shopper, when coordinates were sent.
+  storeId: number;
+  storeAddress?: string | null;
+  storeLatitude?: number | null;
+  storeLongitude?: number | null;
+  distanceKm?: number | null;
+  // Average shopper rating (0-5) and review count.
+  rating: number;
+  reviewCount: number;
+  score: number;
+  reason: string;
+  isSponsored?: boolean;
+  promotionId?: number | null;
+}
+
+// Mirrors AiWebResultDto — an optional web result (Serper).
+export interface AiWebResult {
+  title: string;
+  url: string;
+  snippet?: string | null;
+  score: number;
+  reason: string;
+}
+
+// Mirrors AiRankedResultDto — merged + ranked local/web result.
+export interface AiRankedResult {
+  source: string; // 'local' | 'web'
+  title: string;
+  description?: string | null;
+  price?: number | null;
+  originalPrice?: number | null;
+  salePrice?: number | null;
+  isOnSale?: boolean;
+  imageUrl?: string | null;
+  storeName?: string | null;
+  url?: string | null;
+  score: number;
+  reason: string;
+  isSponsored?: boolean;
+  promotionId?: number | null;
+  product?: AiProductResult | null;
+  webResult?: AiWebResult | null;
+}
+
+// Mirrors AiSearchResponseDto.
 export interface AiSearchResponse {
   query: string;
+  intent: AiSearchIntent;
   answer: string;
-  products: ProductListItem[];
-  totalMatches: number;
+  localResults: AiProductResult[];
+  webResults: AiWebResult[];
+  rankedResults: AiRankedResult[];
 }

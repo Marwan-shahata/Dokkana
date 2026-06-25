@@ -9,11 +9,13 @@ import { CartService } from '../../core/services/cart.service';
 import { AuthService } from '../../core/services/auth.service';
 import { CartApiService } from '../../core/services/cart-api.service';
 import { CartDrawerService } from '../../core/services/cart-drawer.service';
+import { NotificationService } from '../../core/services/notification.service';
+import { NotificationBell } from '../components/notification-bell/notification-bell';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NotificationBell],
   templateUrl: './navbar.html',
   styleUrl: './navbar.css',
 })
@@ -26,6 +28,16 @@ export class Navbar {
   auth = inject(AuthService);
   private cartApi = inject(CartApiService);
   private cartDrawer = inject(CartDrawerService);
+  private notifications = inject(NotificationService);
+
+  // Open the realtime notifications feed while signed in; tear it down on logout.
+  private readonly notificationsEffect = effect(() => {
+    if (this.auth.isLoggedIn()) {
+      this.notifications.start();
+    } else {
+      this.notifications.stop();
+    }
+  });
 
   private readonly cartRefreshEffect = effect(() => {
     if (!this.auth.isLoggedIn() || !this.auth.isShopper()) {
@@ -46,10 +58,13 @@ export class Navbar {
 
   readonly shopperLinks: { id: string; en: string; ar: string; route?: string }[] = [
     { id: 'hero', en: 'Home', ar: 'الرئيسية' },
+    { id: 'ai', en: 'AI Search', ar: 'بحث ذكي', route: '/ai-search' },
     { id: 'trending', en: 'Shop', ar: 'تسوّق' },
     { id: 'why', en: 'Stores', ar: 'المحلات', route: '/stores' },
-    { id: 'experience', en: 'How it works', ar: 'كيف يعمل' },
+    { id: 'experience', en: 'How it works', ar: 'إزاي بتشتغل' },
   ];
+  // Signed-in shoppers get their dedicated home surfaced first.
+  private readonly discoverLink = { id: 'discover', en: 'Discover', ar: 'اكتشف', route: '/discover' };
   readonly merchantLinks: { id: string; en: string; ar: string; route?: string }[] = [
     { id: 'merchant', en: 'Merchant portal', ar: 'بوابة التاجر', route: '/merchant' },
   ];
@@ -76,19 +91,20 @@ export class Navbar {
   visibleLinks(): { id: string; en: string; ar: string; route?: string }[] {
     if (this.auth.isAdmin()) return this.adminLinks;
     if (this.auth.isStoreOwner()) return this.merchantLinks;
-    return this.shopperLinks;
+    // Show Discover only to signed-in shoppers (guests have no discover home).
+    return this.auth.isShopper() ? [this.discoverLink, ...this.shopperLinks] : this.shopperLinks;
   }
 
   themeLabel(): string {
     return this.theme.isDark()
-      ? this.L('Switch to light theme', 'التبديل إلى السمة الفاتحة')
-      : this.L('Switch to dark theme', 'التبديل إلى السمة الداكنة');
+      ? this.L('Switch to light theme', 'غير للوضع الفاتح')
+      : this.L('Switch to dark theme', 'غير للوضع الداكن');
   }
 
   languageLabel(): string {
     return this.lang.isAr()
-      ? this.L('Switch to English', 'التبديل إلى الإنجليزية')
-      : this.L('Switch to Arabic', 'التبديل إلى العربية');
+      ? this.L('Switch to English', 'غير للإنجليزي')
+      : this.L('Switch to Arabic', 'غير للعربي');
   }
 
   @HostListener('window:scroll')
@@ -114,7 +130,9 @@ export class Navbar {
 
   goBrand(): void {
     this.mobileOpen = false;
-    if (this.auth.isAdmin() || this.auth.isStoreOwner()) {
+    // Signed-in users go to their role home (shopper -> discover); guests get
+    // the public landing hero.
+    if (this.auth.isLoggedIn()) {
       this.router.navigateByUrl(this.auth.homeRouteForRole(this.auth.role()));
       return;
     }
@@ -137,16 +155,19 @@ export class Navbar {
     this.lang.toggle();
   }
 
-  // Account button: route logged-in users to the right home, guests to login.
+  // Account button: shoppers go to their profile, business roles to their
+  // dashboard, and guests to login.
   goAccount(): void {
     this.mobileOpen = false;
-    if (this.auth.isLoggedIn()) {
-      this.router.navigateByUrl(this.auth.homeRouteForRole(this.auth.role()) === '/'
-        ? '/profile'
-        : this.auth.homeRouteForRole(this.auth.role()));
-    } else {
+    if (!this.auth.isLoggedIn()) {
       this.router.navigate(['/login']);
+      return;
     }
+    if (this.auth.isShopper()) {
+      this.router.navigateByUrl('/profile');
+      return;
+    }
+    this.router.navigateByUrl(this.auth.homeRouteForRole(this.auth.role()));
   }
 
   logout(): void {

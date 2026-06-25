@@ -14,13 +14,17 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { EngagementService } from '../../core/services/engagement.service';
 import { OrderService } from '../../core/services/order.service';
+import { UploadService } from '../../core/services/upload.service';
+import { toMediaUrl } from '../../core/services/media-url';
 import { ThemeService } from '../../core/services/theme.service';
 import { LanguageService } from '../../core/services/language.service';
 import { CartService } from '../../core/services/cart.service';
 import { CartApiService } from '../../core/services/cart-api.service';
+import { MonetizationService } from '../../core/services/monetization.service';
 import { OrderSummaryDTO } from '../../core/models/order.models';
-import { UserProfileDTO } from '../../core/models/auth.models';
+import { UserProfileDTO, UserProfileUpdateRequest } from '../../core/models/auth.models';
 import { WishlistItemDTO, FollowedStoreDTO } from '../../core/models/engagement.models';
+import { AlertDTO } from '../../core/models/monetization.models';
 
 export type OrderStatus = 'Reserved' | 'Completed' | 'Cancelled' | 'Delivered' | 'Processing' | 'Shipped';
 export interface UserProfile {
@@ -97,22 +101,28 @@ export interface SettingItem {
 export class Profile implements OnInit {
   private auth = inject(AuthService);
   private orderService = inject(OrderService);
+  private upload = inject(UploadService);
   private engagement = inject(EngagementService);
   private router = inject(Router);
   private theme = inject(ThemeService);
   private language = inject(LanguageService);
   private cart = inject(CartService);
   private cartApi = inject(CartApiService);
+  private monetization = inject(MonetizationService);
+  private avatarStorageUrl = '';
 
   constructor(private sanitizer: DomSanitizer, private title: Title) {}
 
    // State
   activeTab = signal<'overview' | 'orders' | 'wishlist' | 'stores' | 'settings'>('overview');
   isEditOpen = signal(false);
+  isPasswordOpen = signal(false);
   // Dark mode is owned by the global ThemeService so the toggle here stays in
   // sync with the navbar switch and the rest of the site.
   darkMode = computed(() => this.theme.isDark());
   notifications = signal(true);
+  alerts = signal<AlertDTO[]>([]);
+  alertsLoading = signal(false);
   editForm: Partial<UserProfile> = {};
   orderFilter: OrderStatus | 'All' = 'All';
   toastMessage = signal<string | null>(null);
@@ -120,9 +130,16 @@ export class Profile implements OnInit {
   ordersError = signal('');
   profileLoading = signal(false);
   profileError = signal('');
+  avatarUploading = signal(false);
+  passwordLoading = signal(false);
   savedStoresCount = signal(0);
   savedStoresLoading = signal(false);
   reviewsCount = signal(0);
+  passwordForm = {
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  };
 
   // User data
   user: UserProfile = {
@@ -186,7 +203,7 @@ export class Profile implements OnInit {
       },
       {
         id: 'notifications', label: this.L('Notification Preferences', 'تفضيلات الإشعارات'), action: 'toggle',
-        desc: this.L('Manage email and push notification settings.', 'إدارة إعدادات إشعارات البريد والتنبيهات.'),
+        desc: this.L('Allow sponsored and campaign notifications in your feed.', 'السماح بالإشعارات الممولة والتنبيهات داخل حسابك.'),
         icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>`,
         toggleValue: this.notifications(),
       },
@@ -214,6 +231,8 @@ export class Profile implements OnInit {
     this.loadWishlist();
     this.loadSavedStores();
     this.loadReviewCount();
+    this.loadNotificationPreferences();
+    this.loadAlerts();
   }
 
   // Methods
@@ -236,20 +255,7 @@ export class Profile implements OnInit {
   }
 
   saveEdit(): void {
-    const fullName = (this.editForm.fullName ?? this.user.fullName).trim();
-    const parts = fullName.split(/\s+/).filter(Boolean);
-    const firstName = parts[0] ?? this.user.fullName;
-    const lastName = parts.slice(1).join(' ') || ' ';
-
-    this.auth.updateProfile({
-      firstName,
-      lastName,
-      phoneNumber: this.editForm.phone ?? null,
-      address: this.editForm.address ?? null,
-      gender: this.editForm.gender ?? null,
-      location: this.editForm.location ?? this.user.location,
-      avatarUrl: this.user.avatar || null,
-    }).subscribe({
+    this.auth.updateProfile(this.toProfileUpdateRequest(this.editForm)).subscribe({
       next: res => {
         if (res.success && res.data) this.applyProfile(res.data);
         this.isEditOpen.set(false);
@@ -293,12 +299,22 @@ export class Profile implements OnInit {
   }
 
   toggleNotifications(): void {
-    this.notifications.update(v => !v);
-    this.showToast(
-      this.notifications()
-        ? this.L('Notifications enabled.', 'تم تفعيل الإشعارات.')
-        : this.L('Notifications muted.', 'تم كتم الإشعارات.'),
-    );
+    const next = !this.notifications();
+    this.notifications.set(next);
+    this.monetization.setNotificationPreferences({ sponsoredNotificationsEnabled: next }).subscribe({
+      next: prefs => {
+        this.notifications.set(prefs.sponsoredNotificationsEnabled);
+        this.showToast(
+          prefs.sponsoredNotificationsEnabled
+            ? this.L('Sponsored notifications enabled.', 'تم تفعيل الإشعارات الممولة.')
+            : this.L('Sponsored notifications muted.', 'تم كتم الإشعارات الممولة.'),
+        );
+      },
+      error: () => {
+        this.notifications.update(v => !v);
+        this.showToast(this.L('Could not update notification preferences.', 'تعذّر تحديث تفضيلات الإشعارات.'));
+      },
+    });
   }
 
   toggleLanguage(): void {
@@ -309,7 +325,6 @@ export class Profile implements OnInit {
     this.cart.add({
       id: item.id,
       name: item.name,
-      nameAr: item.name,
       store: item.store,
       price: item.price,
       image: item.imageUrl ?? '',
@@ -319,12 +334,95 @@ export class Profile implements OnInit {
     this.cartApi.addItem(item.id, 1).subscribe({ error: () => {} });
   }
 
-  changePhoto(): void {
-    this.showToast(this.L('Photo uploads are coming soon.', 'رفع الصور قريبًا.'));
+  uploadAvatar(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file || this.avatarUploading()) return;
+
+    if (!file.type.startsWith('image/')) {
+      this.showToast(this.L('Please choose an image file.', 'اختر ملف صورة صحيح.'));
+      return;
+    }
+
+    if (file.size > 5_000_000) {
+      this.showToast(this.L('Image must be 5MB or smaller.', 'يجب ألا تتجاوز الصورة 5 ميجابايت.'));
+      return;
+    }
+
+    this.avatarUploading.set(true);
+    this.upload.uploadImage(file, 'avatars').subscribe({
+      next: url => {
+        const nextProfile = { ...this.user, avatar: url };
+        this.auth.updateProfile(this.toProfileUpdateRequest(nextProfile)).subscribe({
+          next: res => {
+            if (res.success && res.data) this.applyProfile(res.data);
+            this.avatarUploading.set(false);
+            this.showToast(this.L('Profile photo updated.', 'تم تحديث صورة الملف الشخصي.'));
+          },
+          error: err => {
+            this.avatarUploading.set(false);
+            this.showToast(err?.error?.message || this.L('Could not save profile photo.', 'تعذّر حفظ صورة الملف الشخصي.'));
+          },
+        });
+      },
+      error: err => {
+        this.avatarUploading.set(false);
+        this.showToast(err?.error?.message || this.L('Could not upload image.', 'تعذّر رفع الصورة.'));
+      },
+    });
   }
 
   changePassword(): void {
-    this.showToast(this.L('Password management is coming soon.', 'إدارة كلمة المرور قريبًا.'));
+    this.passwordForm = {
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    };
+    this.isPasswordOpen.set(true);
+  }
+
+  closePassword(): void {
+    if (!this.passwordLoading()) this.isPasswordOpen.set(false);
+  }
+
+  submitPassword(): void {
+    const currentPassword = this.passwordForm.currentPassword.trim();
+    const newPassword = this.passwordForm.newPassword.trim();
+    const confirmPassword = this.passwordForm.confirmPassword.trim();
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      this.showToast(this.L('Fill all password fields.', 'املأ كل حقول كلمة المرور.'));
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      this.showToast(this.L('New password must be at least 6 characters.', 'كلمة المرور الجديدة يجب ألا تقل عن 6 أحرف.'));
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      this.showToast(this.L('New passwords do not match.', 'كلمتا المرور الجديدتان غير متطابقتين.'));
+      return;
+    }
+
+    this.passwordLoading.set(true);
+    this.auth.changePassword({ currentPassword, newPassword }).subscribe({
+      next: res => {
+        this.passwordLoading.set(false);
+        if (!res.success) {
+          this.showToast(res.message || this.L('Could not update password.', 'تعذّر تحديث كلمة المرور.'));
+          return;
+        }
+
+        this.isPasswordOpen.set(false);
+        this.showToast(this.L('Password updated successfully.', 'تم تحديث كلمة المرور بنجاح.'));
+      },
+      error: err => {
+        this.passwordLoading.set(false);
+        this.showToast(err?.error?.message || this.L('Could not update password.', 'تعذّر تحديث كلمة المرور.'));
+      },
+    });
   }
 
   deleteAccount(): void {
@@ -487,8 +585,69 @@ export class Profile implements OnInit {
     });
   }
 
+  private loadNotificationPreferences(): void {
+    this.monetization.getNotificationPreferences().subscribe({
+      next: prefs => this.notifications.set(prefs.sponsoredNotificationsEnabled),
+      error: () => {},
+    });
+  }
+
+  private loadAlerts(): void {
+    this.alertsLoading.set(true);
+    this.monetization.getAlerts().subscribe({
+      next: alerts => {
+        this.alerts.set(alerts);
+        this.alertsLoading.set(false);
+      },
+      error: () => {
+        this.alerts.set([]);
+        this.alertsLoading.set(false);
+      },
+    });
+  }
+
+  alertLabel(alert: AlertDTO): string {
+    const labels: Record<string, string> = {
+      BackInStock: this.L('Back in stock', 'عودة التوفر'),
+      PriceDrop: this.L('Price drop', 'انخفاض السعر'),
+      NewMatch: this.L('New search match', 'مطابقة بحث جديدة'),
+    };
+    return labels[alert.type] ?? alert.type;
+  }
+
+  alertTarget(alert: AlertDTO): string {
+    if (alert.productTitle) return alert.productTitle;
+    if (alert.query) return alert.query;
+    return this.L('Saved alert', 'تنبيه محفوظ');
+  }
+
+  private toProfileUpdateRequest(profile: Partial<UserProfile>): UserProfileUpdateRequest {
+    const fullName = (profile.fullName ?? this.user.fullName).trim();
+    const parts = fullName.split(/\s+/).filter(Boolean);
+    const firstName = parts[0] ?? this.user.fullName;
+    const lastName = parts.slice(1).join(' ') || ' ';
+
+    return {
+      firstName,
+      lastName,
+      phoneNumber: (profile.phone ?? this.user.phone) || null,
+      address: (profile.address ?? this.user.address) || null,
+      gender: (profile.gender ?? this.user.gender) || null,
+      location: profile.location ?? this.user.location,
+      avatarUrl: this.avatarUrlForUpdate(profile),
+    };
+  }
+
+  private avatarUrlForUpdate(profile: Partial<UserProfile>): string | null {
+    const avatar = (profile.avatar ?? this.user.avatar).trim();
+    if (!avatar) return null;
+    if (avatar === this.user.avatar && this.avatarStorageUrl) return this.avatarStorageUrl;
+    return avatar;
+  }
+
   private applyProfile(profile: UserProfileDTO): void {
     const fullName = `${profile.firstName} ${profile.lastName}`.trim() || profile.email;
+    this.avatarStorageUrl = profile.avatarUrl?.trim() ?? '';
     this.user = {
       ...this.user,
       fullName,
@@ -498,7 +657,7 @@ export class Profile implements OnInit {
       gender: profile.gender ?? '',
       location: profile.location ?? 'Egypt',
       memberSince: this.formatDate(profile.createdAt),
-      avatar: profile.avatarUrl ?? '',
+      avatar: toMediaUrl(this.avatarStorageUrl),
       initials: this.initials(fullName),
     };
     this.editForm = { ...this.user };

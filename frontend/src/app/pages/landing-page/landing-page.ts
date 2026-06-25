@@ -1,24 +1,50 @@
-import { Component, ElementRef, AfterViewInit, OnInit, inject, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { DomSanitizer, SafeHtml, Title } from '@angular/platform-browser';
-import { LanguageService } from '../../core/services/language.service';
-import { CartService } from '../../core/services/cart.service';
-import { CartApiService } from '../../core/services/cart-api.service';
-import { AuthService } from '../../core/services/auth.service';
+import { Title } from '@angular/platform-browser';
+import { firstValueFrom } from 'rxjs';
 import { ProductService } from '../../core/services/product.service';
-import { CategoryService } from '../../core/services/category.service';
-import { AiSearchService } from '../../core/services/ai-search.service';
+import { StoreService } from '../../core/services/store.service';
+import { MonetizationService } from '../../core/services/monetization.service';
+import { LanguageService } from '../../core/services/language.service';
 import { ProductListItem } from '../../core/models/catalog.models';
+import { PromotionDTO, TrendingQueryDTO } from '../../core/models/monetization.models';
 
-interface Product {
-  id: number; name: string; nameAr: string; cat: string;
-  store: string; price: number;
-  rating: number;
-  icon: 'dress' | 'shirt' | 'sneaker' | 'bag';
-  gradient: string; image: string; fav: boolean;
-  fromApi?: boolean;
+interface PromptChip {
+  readonly en: string;
+  readonly ar: string;
+  readonly enQuery: string;
+  readonly arQuery: string;
+}
+
+interface JourneyStep {
+  readonly number: string;
+  readonly enTitle: string;
+  readonly arTitle: string;
+  readonly enBody: string;
+  readonly arBody: string;
+}
+
+interface TrustNote {
+  readonly value: string;
+  readonly arValue: string;
+  readonly enLabel: string;
+  readonly arLabel: string;
+}
+
+interface LandingProduct {
+  readonly id?: number;
+  readonly name: string;
+  readonly nameAr?: string;
+  readonly store: string;
+  readonly storeAr?: string;
+  readonly category: string;
+  readonly categoryAr?: string;
+  readonly price: number;
+  readonly image: string;
+  readonly sponsored?: boolean;
+  readonly promotionId?: number;
 }
 
 @Component({
@@ -26,343 +52,314 @@ interface Product {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './landing-page.html',
-  styleUrl: './landing-page.css',
+  styleUrl: './landing-page.css'
 })
 export class LandingPage implements OnInit, AfterViewInit {
-  private sanitizer = inject(DomSanitizer);
-  private title = inject(Title);
-  private host = inject(ElementRef<HTMLElement>);
-  private router = inject(Router);
-  private productService = inject(ProductService);
-  private categoryService = inject(CategoryService);
-  private aiSearch = inject(AiSearchService);
-  private cartApi = inject(CartApiService);
-  private auth = inject(AuthService);
-  lang = inject(LanguageService);
-  cart = inject(CartService);
+  private readonly router = inject(Router);
+  private readonly title = inject(Title);
+  private readonly products = inject(ProductService);
+  private readonly stores = inject(StoreService);
+  private readonly monetization = inject(MonetizationService);
+  private readonly language = inject(LanguageService);
+  private readonly host: ElementRef<HTMLElement> = inject(ElementRef);
 
   query = '';
-  activeTab = 'All';
-  aiTags = signal<string[]>([]);
-  aiAnswer = signal('');     // natural-language answer from the AI endpoint
-  searching = signal(false); // AI search in-flight
-  toastMsg = signal('');
 
-  // Live data from the backend. When empty (API down / no data) we fall back to
-  // the demo content below so the landing page always looks complete.
-  readonly apiProducts = signal<Product[]>([]);
-  readonly apiTabs = signal<{ id: string; en: string; ar: string }[]>([]);
-  readonly loading = signal(true);
-  get usingApi(): boolean { return this.apiProducts().length > 0; }
+  readonly storeCount = signal(0);
+  readonly productPreview = signal<LandingProduct[]>([]);
+  readonly sponsoredPreview = signal<LandingProduct[]>([]);
+  readonly trendingQueries = signal<TrendingQueryDTO[]>([]);
+  readonly loadingPreview = signal(true);
+  readonly toast = signal('');
 
-  L(en: string, ar: string): string { return this.lang.t(en, ar); }
+  private toastTimer?: ReturnType<typeof setTimeout>;
 
-  canUseShopperActions(): boolean {
-    return !this.auth.isLoggedIn() || this.auth.isShopper();
-  }
-
-  // Static demo tabs - used as a fallback until categories load from the API.
-  readonly demoTabs = [
-    { id: 'All', en: 'All', ar: 'الكل' },
-    { id: 'Dresses', en: 'Dresses', ar: 'فساتين' },
-    { id: 'Shoes', en: 'Shoes', ar: 'أحذية' },
-    { id: 'Bags', en: 'Bags', ar: 'شنط' },
-    { id: 'Shirts', en: 'Shirts', ar: 'قمصان' },
-  ];
-
-  get tabs(): { id: string; en: string; ar: string }[] {
-    return this.apiTabs().length > 0 ? this.apiTabs() : this.demoTabs;
-  }
-
-  readonly chips = [
-    { q: 'dress', label: 'summer dress', ar: false },
-    { q: 'sneaker', label: 'white sneakers', ar: false },
-    { q: 'bag', label: 'شنطة جلد', ar: true },
-    { q: 'shirt', label: 'قميص كتان', ar: true },
-  ];
-
-  readonly features = [
+  readonly promptChips: PromptChip[] = [
     {
-      en: 'AI natural search', ar: 'بحث ذكي طبيعي',
-      enD: 'Type or speak in Egyptian Arabic or English. The AI reads style, color, and budget.',
-      arD: 'اكتب أو قول بالعامية المصرية أو الإنجليزي. الذكاء الاصطناعي بيفهم الستايل واللون والميزانية.',
-      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>`,
+      en: 'under 500 EGP',
+      ar: 'أقل من ٥٠٠ جنيه',
+      enQuery: 'summer dress under 500 EGP',
+      arQuery: 'فستان صيفي أقل من ٥٠٠ جنيه'
     },
     {
-      en: 'Real local stock', ar: 'مخزون محلي حقيقي',
-      enD: 'Results come from real catalogs of nearby shops, with live prices and availability.',
-      arD: 'النتائج من كتالوجات حقيقية لمحلات قريبة، بأسعار وتوافر مباشر.',
-      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>`,
+      en: 'near me today',
+      ar: 'قريب مني النهارده',
+      enQuery: 'women outfit near me today',
+      arQuery: 'لبس خروجة قريب مني النهارده'
     },
     {
-      en: 'Reserve & pick up', ar: 'احجز واستلم',
-      enD: 'Reserve an item, get a code, and collect it at the shop. Or chat the store on WhatsApp.',
-      arD: 'احجز منتج، خد كود، واستلمه من المحل. أو كلّم المحل على واتساب.',
-      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8-4-8 4 8 4 8-4z"/><path d="M4 7v10l8 4 8-4V7"/></svg>`,
+      en: 'formal black shirt',
+      ar: 'قميص أسود رسمي',
+      enQuery: 'formal black shirt in stock',
+      arQuery: 'قميص أسود رسمي متاح دلوقتي'
+    }
+  ];
+
+  readonly journeySteps: JourneyStep[] = [
+    {
+      number: '01',
+      enTitle: 'Describe what you need',
+      arTitle: 'قولنا محتاج إيه',
+      enBody: 'Use natural language, budget, color, occasion, size, or a photo idea.',
+      arBody: 'اكتب اللون، الميزانية، المناسبة، المقاس، أو ارفع صورة شبه اللي في بالك.'
     },
+    {
+      number: '02',
+      enTitle: 'Compare local stock',
+      arTitle: 'قارن المتاح قريب منك',
+      enBody: 'Dokkana filters real products from nearby stores before sending you wider web options.',
+      arBody: 'دكانة بتطلع منتجات من محلات قريبة الأول، وبعدها تقترح بدائل أونلاين لو محتاج.'
+    },
+    {
+      number: '03',
+      enTitle: 'Reserve or visit',
+      arTitle: 'احجز أو روح للمحل',
+      enBody: 'Open the store, check availability, add to cart, or keep shopping by category.',
+      arBody: 'افتح صفحة المحل، شوف التوفر، ضيف للسلة، أو كمل تصفح حسب الفئة.'
+    }
   ];
 
-  readonly steps = [
-    { n: '1', en: 'Describe it your way', ar: 'اوصفه بطريقتك', enD: 'Natural language, photo, or voice in Arabic or English.', arD: 'لغة طبيعية، صورة، أو صوت بالعربي أو الإنجليزي.' },
-    { n: '2', en: "See what's in stock nearby", ar: 'شوف المتوفر قريب منك', enD: 'Live results from real local catalogs, ask the catalog questions.', arD: 'نتائج مباشرة من كتالوجات محلية حقيقية، واسأل الكتالوج.' },
-    { n: '3', en: 'Reserve, chat, or visit', ar: 'احجز، كلّم، أو زور', enD: 'Reserve for pickup, message on WhatsApp, or get directions.', arD: 'احجز للاستلام، كلّم على واتساب، أو خد الاتجاهات.' },
+  readonly trustNotes: TrustNote[] = [
+    {
+      value: 'AI',
+      arValue: 'ذكي',
+      enLabel: 'search that understands style, color, and budget',
+      arLabel: 'بحث بيفهم الستايل واللون والميزانية'
+    },
+    {
+      value: 'Local',
+      arValue: 'محلي',
+      enLabel: 'store pages, products, and pickup-first journeys',
+      arLabel: 'صفحات محلات ومنتجات ورحلة سهلة للاستلام'
+    },
+    {
+      value: 'Bilingual',
+      arValue: 'عربي + إنجليزي',
+      enLabel: 'Arabic and English prompts across the same flow',
+      arLabel: 'اكتب بالعربي أو الإنجليزي في نفس التجربة'
+    }
   ];
 
-  readonly demoProducts: Product[] = [
-    { id: 1, name: 'Summer Wrap Dress', nameAr: 'فستان صيفي ملفوف', cat: 'Dresses', store: 'Layla Atelier', price: 480, rating: 5, icon: 'dress', gradient: 'linear-gradient(150deg, oklch(0.56 0.17 22), oklch(0.36 0.11 22))', image: '/hero.jpg', fav: false },
-    { id: 2, name: 'Linen Button Shirt', nameAr: 'قميص كتان', cat: 'Shirts', store: 'Boutique El Nour', price: 320, rating: 5, icon: 'shirt', gradient: 'linear-gradient(150deg, oklch(0.64 0.155 45), oklch(0.42 0.1 45))', image: '/about.png', fav: false },
-    { id: 3, name: 'White Court Sneakers', nameAr: 'كوتشي أبيض', cat: 'Shoes', store: 'Cairo Kicks', price: 650, rating: 4, icon: 'sneaker', gradient: 'linear-gradient(150deg, oklch(0.61 0.085 195), oklch(0.4 0.06 195))', image: '/ecommerce-store.png', fav: false },
-    { id: 4, name: 'Brown Leather Tote', nameAr: 'شنطة جلد بني', cat: 'Bags', store: 'Zahra Goods', price: 540, rating: 5, icon: 'bag', gradient: 'linear-gradient(150deg, oklch(0.52 0.14 42), oklch(0.34 0.09 42))', image: '/shop.png', fav: false },
-    { id: 5, name: 'Floral Day Dress', nameAr: 'فستان مزهّر', cat: 'Dresses', store: 'Layla Atelier', price: 390, rating: 4, icon: 'dress', gradient: 'linear-gradient(150deg, oklch(0.64 0.14 25), oklch(0.42 0.1 25))', image: '/hero.jpg', fav: false },
-    { id: 6, name: 'Oxford Cotton Shirt', nameAr: 'قميص قطن', cat: 'Shirts', store: 'Boutique El Nour', price: 410, rating: 4, icon: 'shirt', gradient: 'linear-gradient(150deg, oklch(0.72 0.06 195), oklch(0.5 0.06 200))', image: '/about.png', fav: false },
-    { id: 7, name: 'Suede Crossbody', nameAr: 'شنطة شامواه', cat: 'Bags', store: 'Zahra Goods', price: 470, rating: 5, icon: 'bag', gradient: 'linear-gradient(150deg, oklch(0.6 0.1 65), oklch(0.42 0.09 58))', image: '/shop.png', fav: false },
-    { id: 8, name: 'Runner Sneakers', nameAr: 'كوتشي رياضي', cat: 'Shoes', store: 'Cairo Kicks', price: 720, rating: 4, icon: 'sneaker', gradient: 'linear-gradient(150deg, oklch(0.55 0.06 250), oklch(0.38 0.05 250))', image: '/ecommerce-store.png', fav: false },
-  ];
-
-  private readonly icons: Record<string, string> = {
-    dress: '<path d="M9 2h6l-1 4 3 4-2 2 2 9H7l2-9-2-2 3-4-1-4z"/>',
-    shirt: '<path d="M6 3l3-1 3 2 3-2 3 1 2 5-3 1v9H7v-9L4 8z"/>',
-    sneaker: '<path d="M2 16l2-7 4 2 3-3 2 1v3l7 2c1 .3 2 1 2 2v2H2z"/>',
-    bag: '<path d="M5 8h14l-1 13H6L5 8z"/><path d="M9 8V6a3 3 0 016 0v2"/>',
+  private readonly productNamesAr: Record<string, string> = {
+    'Black Polo Shirt': 'بولو أسود',
+    'Running Shoes': 'كوتشي جري',
+    'Performance T-Shirt': 'تيشيرت رياضي',
+    'Floral Maxi Dress': 'فستان طويل منقوش',
+    'Summer Sundress': 'فستان صيفي',
+    'Wide-Leg Linen Pants': 'بنطلون كتان واسع'
   };
 
-  garment(type: string): SafeHtml {
-    return this.sanitizer.bypassSecurityTrustHtml(
-      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round">${this.icons[type]}</svg>`
-    );
-  }
-  svg(html: string): SafeHtml { return this.sanitizer.bypassSecurityTrustHtml(html); }
+  private readonly categoriesAr: Record<string, string> = {
+    Activewear: 'لبس رياضي',
+    Dresses: 'فساتين',
+    Linen: 'كتان',
+    Summer: 'صيفي',
+    Tops: 'تيشيرتات وقمصان'
+  };
 
-  // Source = live API products when available, otherwise the demo set.
-  get source(): Product[] {
-    return this.usingApi ? this.apiProducts() : this.demoProducts;
-  }
+  private readonly storesAr: Record<string, string> = {
+    'Dokkana Sample Store': 'محل دكانة التجريبي'
+  };
 
-  get filtered(): Product[] {
-    return this.activeTab === 'All' ? this.source : this.source.filter(p => p.cat === this.activeTab);
-  }
-
-  // Switching tabs renders a different set of cards; reveal the new ones.
-  selectTab(id: string): void {
-    this.activeTab = id;
-    this.revealAfterRender();
-  }
-
-  catLabel(cat: string): string {
-    const tab = this.tabs.find(t => t.id === cat);
-    return tab ? this.L(tab.en, tab.ar) : cat;
-  }
-
-  stars(n: number): boolean[] { return Array(5).fill(0).map((_, i) => i < n); }
-
-  ngOnInit(): void {
-    this.title.setTitle(this.L('Dokkana · Local fashion, searchable', 'دكانة · أزياء محلية قابلة للبحث'));
-    this.loadCategories();
-    this.loadProducts();
-  }
-
-  private loadCategories(): void {
-    this.categoryService.getAll().subscribe({
-      next: cats => {
-        if (cats.length) {
-          this.apiTabs.set([
-            { id: 'All', en: 'All', ar: 'الكل' },
-            ...cats.map(c => ({ id: c.name, en: c.name, ar: c.name })),
-          ]);
-        }
-      },
-      error: () => {}, // keep demo tabs on failure
-    });
-  }
-
-  private loadProducts(): void {
-    this.loading.set(true);
-    this.productService.getAll({ page: 1, pageSize: 48 }).subscribe({
-      next: page => {
-        this.apiProducts.set(page.items.map((p, i) => this.toCard(p, i)));
-        this.loading.set(false);
-        this.revealAfterRender();
-      },
-      error: () => this.loading.set(false), // demo fallback stays
-    });
-  }
-
-  // Maps a backend ProductListItem into the rich card shape the template uses,
-  // synthesizing the demo-only visuals (gradient/icon) the API doesn't provide.
-  private readonly gradients = [
-    'linear-gradient(150deg, oklch(0.56 0.17 22), oklch(0.36 0.11 22))',
-    'linear-gradient(150deg, oklch(0.64 0.155 45), oklch(0.42 0.1 45))',
-    'linear-gradient(150deg, oklch(0.61 0.085 195), oklch(0.4 0.06 195))',
-    'linear-gradient(150deg, oklch(0.52 0.14 42), oklch(0.34 0.09 42))',
+  readonly fallbackProducts: LandingProduct[] = [
+    {
+      name: 'Floral Maxi Dress',
+      nameAr: 'فستان طويل منقوش',
+      store: 'Dokkana Sample Store',
+      storeAr: 'محل دكانة التجريبي',
+      category: 'Dresses',
+      categoryAr: 'فساتين',
+      price: 450,
+      image: '/hero.jpg'
+    },
+    {
+      name: 'Summer Sundress',
+      nameAr: 'فستان صيفي',
+      store: 'Dokkana Sample Store',
+      storeAr: 'محل دكانة التجريبي',
+      category: 'Summer',
+      categoryAr: 'صيفي',
+      price: 250,
+      image: '/about.png'
+    },
+    {
+      name: 'Wide-Leg Linen Pants',
+      nameAr: 'بنطلون كتان واسع',
+      store: 'Dokkana Sample Store',
+      storeAr: 'محل دكانة التجريبي',
+      category: 'Linen',
+      categoryAr: 'كتان',
+      price: 310,
+      image: '/shop.png'
+    }
   ];
 
-  private toCard(p: ProductListItem, index: number): Product {
+  ngOnInit(): void {
+    this.title.setTitle('Dokkana | Shop local fashion with AI');
+    void this.loadStoreCount();
+    void this.loadProductPreview();
+    void this.loadSponsoredPreview();
+    void this.loadTrendingQueries();
+  }
+
+  ngAfterViewInit(): void {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const revealEls = Array.from(this.host.nativeElement.querySelectorAll('[data-reveal]')) as HTMLElement[];
+
+    if (reduceMotion || !('IntersectionObserver' in window)) {
+      revealEls.forEach((el: HTMLElement) => el.classList.add('is-visible'));
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.16 }
+    );
+
+    revealEls.forEach((el: HTMLElement) => observer.observe(el));
+  }
+
+  L(en: string, ar: string): string {
+    return this.language.t(en, ar);
+  }
+
+  searchPlaceholder(): string {
+    return this.L('linen summer dress under 500 EGP', 'فستان صيفي كتان أقل من ٥٠٠ جنيه');
+  }
+
+  openAiSearch(search = this.query): void {
+    const q = search.trim() || this.searchPlaceholder();
+    void this.router.navigate(['/ai-search'], {
+      queryParams: q ? { q } : undefined
+    });
+  }
+
+  usePrompt(chip: PromptChip): void {
+    const q = this.language.isAr() ? chip.arQuery : chip.enQuery;
+    this.query = q;
+    this.openAiSearch(q);
+  }
+
+  useTrend(trend: TrendingQueryDTO): void {
+    this.query = trend.query;
+    this.openAiSearch(trend.query);
+  }
+
+  viewStores(): void {
+    void this.router.navigate(['/stores']);
+  }
+
+  openShop(): void {
+    this.viewStores();
+  }
+
+  openSignup(): void {
+    void this.router.navigate(['/signup']);
+  }
+
+  openProduct(product: LandingProduct): void {
+    if (product.promotionId) {
+      this.monetization.trackPromotionClick(product.promotionId).subscribe({ error: () => {} });
+    }
+    if (!product.id) {
+      this.showToast(this.L('Open AI Search to find similar items from live stock.', 'افتح البحث الذكي عشان تلاقي قطع مشابهة من المتاح دلوقتي.'));
+      return;
+    }
+
+    void this.router.navigate(['/products', product.id]);
+  }
+
+  onPreviewImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    img.src = '/about.png';
+  }
+
+  private async loadStoreCount(): Promise<void> {
+    try {
+      const result = await firstValueFrom(this.stores.getApproved());
+      this.storeCount.set(result.length);
+    } catch {
+      this.storeCount.set(0);
+    }
+  }
+
+  private async loadProductPreview(): Promise<void> {
+    this.loadingPreview.set(true);
+    try {
+      const result = await firstValueFrom(this.products.getAll({ page: 1, pageSize: 6, maxPrice: 500 }));
+      const items = (result.items ?? []).slice(0, 3).map((item) => this.mapPreviewProduct(item));
+      this.productPreview.set(items.length ? items : this.fallbackProducts);
+    } catch {
+      this.productPreview.set(this.fallbackProducts);
+    } finally {
+      this.loadingPreview.set(false);
+    }
+  }
+
+  private async loadSponsoredPreview(): Promise<void> {
+    try {
+      const result = await firstValueFrom(this.monetization.sponsoredProducts(2));
+      this.sponsoredPreview.set(result.map(item => this.mapSponsoredPreviewProduct(item)).filter(item => item.id));
+    } catch {
+      this.sponsoredPreview.set([]);
+    }
+  }
+
+  private async loadTrendingQueries(): Promise<void> {
+    try {
+      const result = await firstValueFrom(this.monetization.getTrending(5));
+      this.trendingQueries.set(result);
+    } catch {
+      this.trendingQueries.set([]);
+    }
+  }
+
+  private mapPreviewProduct(item: ProductListItem): LandingProduct {
+    const name = item.title;
+    const store = item.storeName || 'Local store';
+    const category = item.categoryName || 'Featured';
+
     return {
-      id: p.id,
-      name: p.title,
-      nameAr: p.title,
-      cat: p.categoryName,
-      store: p.storeName,
-      price: p.price,
-      rating: 5,
-      icon: this.iconFor(p.categoryName),
-      gradient: this.gradients[index % this.gradients.length],
-      image: p.imageUrl ?? '',
-      fav: false,
-      fromApi: true,
+      id: item.id,
+      name,
+      nameAr: this.productNamesAr[name],
+      store,
+      storeAr: this.storesAr[store] || (store === 'Local store' ? 'محل قريب منك' : undefined),
+      category,
+      categoryAr: this.categoriesAr[category] || (category === 'Featured' ? 'مختار' : undefined),
+      price: item.price,
+      image: item.imageUrl || '/about.png'
     };
   }
 
-  private iconFor(category: string): Product['icon'] {
-    const c = category.toLowerCase();
-    if (c.includes('dress')) return 'dress';
-    if (c.includes('shoe') || c.includes('sneaker') || c.includes('activ')) return 'sneaker';
-    if (c.includes('bag')) return 'bag';
-    return 'shirt';
+  private mapSponsoredPreviewProduct(item: PromotionDTO): LandingProduct {
+    const name = item.productTitle || item.title || 'Sponsored pick';
+    const store = item.storeName || 'Local store';
+
+    return {
+      id: item.productId ?? undefined,
+      name,
+      nameAr: item.productTitle ? undefined : 'اختيار ممول',
+      store,
+      storeAr: this.storesAr[store] || (store === 'Local store' ? 'محل قريب منك' : undefined),
+      category: 'Sponsored',
+      categoryAr: 'إعلان',
+      price: item.productPrice ?? 0,
+      image: item.productImageUrl || '/shop.png',
+      sponsored: true,
+      promotionId: item.id,
+    };
   }
 
-  openProduct(p: Product, e?: Event): void {
-    e?.stopPropagation();
-    // Only navigate for real backend products; demo cards have no detail page.
-    if (p.fromApi) this.router.navigate(['/products', p.id]);
-  }
-
-  // Scroll-reveal observer for static content blocks.
-  private io?: IntersectionObserver;
-
-  ngAfterViewInit(): void {
-    this.io = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) { e.target.classList.add('in'); this.io!.unobserve(e.target); }
-      });
-    }, { threshold: 0.12 });
-    this.observeReveals();
-  }
-
-  // Observe any `.reveal` element not yet revealed. Safe to call repeatedly.
-  private observeReveals(): void {
-    if (!this.io) return;
-    this.host.nativeElement
-      .querySelectorAll('.reveal:not(.in)')
-      .forEach((el: Element) => this.io!.observe(el));
-  }
-
-  // Observe reveal blocks after async data renders.
-  private revealAfterRender(): void {
-    setTimeout(() => this.observeReveals());
-  }
-
-  // AI search
-  private readonly rec: Record<string, { cat: string; en: string[]; ar: string[] }> = {
-    dress: { cat: 'Dresses', en: ['Dress', 'Summer', '< 500'], ar: ['فستان', 'صيفي', '< ٥٠٠'] },
-    sneaker: { cat: 'Shoes', en: ['Sneakers', 'White', 'Open now'], ar: ['كوتشي', 'أبيض', 'مفتوح'] },
-    bag: { cat: 'Bags', en: ['Bag', 'Leather', 'Brown'], ar: ['شنطة', 'جلد', 'بني'] },
-    shirt: { cat: 'Shirts', en: ['Shirt', 'Cotton'], ar: ['قميص', 'قطن'] },
-  };
-
-  searchFromChip(q: string, label: string): void { this.query = label; this.search(); }
-
-  search(): void {
-    const query = this.query.trim();
-    this.setVisualTags();
-
-    if (!query) {
-      this.aiAnswer.set('');
-      this.loadProducts();
-      this.scrollToTrending();
-      return;
-    }
-
-    // Real AI-powered search: the backend returns a natural-language answer plus
-    // ranked product matches. On failure we fall back to plain product search.
-    this.searching.set(true);
-    this.aiSearch.search({ query }).subscribe({
-      next: res => {
-        this.searching.set(false);
-        this.aiAnswer.set(res.answer ?? '');
-        if (res.products.length) {
-          this.apiProducts.set(res.products.map((p, i) => this.toCard(p, i)));
-          this.activeTab = 'All';
-        }
-        this.revealAfterRender();
-        this.scrollToTrending();
-      },
-      error: () => {
-        this.searching.set(false);
-        // Fallback to direct product search if the AI endpoint is unavailable.
-        this.productService.getAll({ search: query, page: 1, pageSize: 48 }).subscribe({
-          next: page => {
-            if (page.items.length) {
-              this.apiProducts.set(page.items.map((p, i) => this.toCard(p, i)));
-              this.activeTab = 'All';
-            }
-            this.revealAfterRender();
-            this.scrollToTrending();
-          },
-          error: () => this.scrollToTrending(),
-        });
-      },
-    });
-  }
-
-  // Sets the small "AI understood" tag banner based on the query keywords.
-  private setVisualTags(): void {
-    const v = this.query.toLowerCase();
-    let k = 'dress';
-    if (v.match(/sneaker|shoe|كوتش|حذاء/)) k = 'sneaker';
-    else if (v.match(/bag|شنط/)) k = 'bag';
-    else if (v.match(/shirt|قميص/)) k = 'shirt';
-    const r = this.rec[k] || this.rec['dress'];
-    this.aiTags.set(this.lang.isAr() ? r.ar : r.en);
-  }
-
-  private scrollToTrending(): void {
-    setTimeout(() => document.getElementById('trending')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
-  }
-
-  // interactions
-  addToCart(p: Product, e: Event): void {
-    e.stopPropagation();
-    if (!p.fromApi) {
-      this.showToast(this.L('Start the API to reserve real products', 'شغّل الـ API لحجز المنتجات الحقيقية'));
-      return;
-    }
-
-    if (!this.auth.isLoggedIn()) {
-      this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
-      return;
-    }
-
-    if (!this.auth.isShopper()) {
-      this.showToast(this.L('Shopper accounts only can reserve items', 'حسابات المتسوقين فقط يمكنها الحجز'));
-      return;
-    }
-
-    this.cartApi.addItem(p.id).subscribe({
-      next: res => {
-        if (res.success && res.data) {
-          this.cart.setFromCart(res.data);
-          this.showToast(this.L('Added to reservation', 'تمت الإضافة للحجز'));
-        } else {
-          this.showToast(res.message || this.L('Could not add item', 'تعذّرت إضافة المنتج'));
-        }
-      },
-      error: err => this.showToast(err?.error?.message || this.L('Could not add item', 'تعذّرت إضافة المنتج')),
-    });
-  }
-
-  showCatalogToast(): void {
-    this.showToast(this.L('Demo: full catalog page', 'ديمو: صفحة الكتالوج الكاملة'));
-  }
-
-  toggleFav(p: Product, e: Event): void { e.stopPropagation(); p.fav = !p.fav; }
-
-  onImgError(e: Event): void { (e.target as HTMLElement).style.display = 'none'; }
-
-  private toastTimer: any;
-  private showToast(msg: string): void {
-    this.toastMsg.set(msg);
-    clearTimeout(this.toastTimer);
-    this.toastTimer = setTimeout(() => this.toastMsg.set(''), 2200);
+  private showToast(message: string): void {
+    window.clearTimeout(this.toastTimer);
+    this.toast.set(message);
+    this.toastTimer = window.setTimeout(() => this.toast.set(''), 2600);
   }
 }

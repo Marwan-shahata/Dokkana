@@ -1,19 +1,22 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map, tap } from 'rxjs';
+import { Observable, map, tap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   ApiResult,
   AuthResponse,
+  ChangePasswordRequest,
   CurrentUser,
   LoginRequest,
   RegisterRequest,
+  RefreshTokenRequest,
   UserProfileDTO,
   UserProfileUpdateRequest,
   UserRole,
 } from '../models/auth.models';
 
 const TOKEN_KEY = 'dokkana_token';
+const REFRESH_TOKEN_KEY = 'dokkana_refresh_token';
 const USER_KEY = 'dokkana_user';
 
 @Injectable({ providedIn: 'root' })
@@ -57,14 +60,34 @@ export class AuthService {
       }));
   }
 
+  changePassword(payload: ChangePasswordRequest): Observable<ApiResult<unknown>> {
+    return this.http.put<ApiResult<unknown>>(`${this.base}/me/password`, payload);
+  }
+
   logout(): void {
-    // Backend logout is stateless; we just call it best-effort and clear locally.
-    this.http.post(`${this.base}/logout`, {}).subscribe({ error: () => {} });
+    const refresh = this.refreshPayload();
     this.clearSession();
+    if (refresh) this.http.post(`${this.base}/logout`, refresh).subscribe({ error: () => {} });
   }
 
   getToken(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
+    return sessionStorage.getItem(TOKEN_KEY);
+  }
+
+  refreshSession(): Observable<ApiResult<AuthResponse>> {
+    const payload = this.refreshPayload();
+    if (!payload) return throwError(() => new Error('No refresh token available.'));
+
+    return this.http
+      .post<ApiResult<AuthResponse>>(`${this.base}/refresh`, payload)
+      .pipe(tap(res => this.persistSession(res)));
+  }
+
+  clearSession(): void {
+    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+    sessionStorage.removeItem(USER_KEY);
+    this.currentUser.set(null);
   }
 
   // Default landing route per role after login/register.
@@ -74,6 +97,8 @@ export class AuthService {
         return '/admin';
       case 'StoreOwner':
         return '/merchant';
+      case 'Shopper':
+        return '/discover';
       default:
         return '/';
     }
@@ -82,7 +107,8 @@ export class AuthService {
   private persistSession(res: ApiResult<AuthResponse>): void {
     if (!res.success || !res.data) return;
     const data = res.data;
-    localStorage.setItem(TOKEN_KEY, data.token);
+    sessionStorage.setItem(TOKEN_KEY, data.token);
+    sessionStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
     const user: CurrentUser = {
       userId: data.userId,
       email: data.email,
@@ -92,7 +118,7 @@ export class AuthService {
       storeId: data.storeId ?? null,
       storeName: data.storeName ?? null,
     };
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    sessionStorage.setItem(USER_KEY, JSON.stringify(user));
     this.currentUser.set(user);
   }
 
@@ -105,22 +131,34 @@ export class AuthService {
       firstName: profile.firstName,
       lastName: profile.lastName,
     };
-    localStorage.setItem(USER_KEY, JSON.stringify(next));
+    sessionStorage.setItem(USER_KEY, JSON.stringify(next));
     this.currentUser.set(next);
-  }
-
-  private clearSession(): void {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-    this.currentUser.set(null);
   }
 
   private readUser(): CurrentUser | null {
     try {
-      const raw = localStorage.getItem(USER_KEY);
-      const token = localStorage.getItem(TOKEN_KEY);
-      if (!raw || !token) return null;
+      // Clear older persistent auth entries from previous builds. Theme and
+      // language preferences still use localStorage intentionally.
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(REFRESH_TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+
+      const raw = sessionStorage.getItem(USER_KEY);
+      const token = sessionStorage.getItem(TOKEN_KEY);
+      const refreshToken = sessionStorage.getItem(REFRESH_TOKEN_KEY);
+      if (!raw || !token || !refreshToken) return null;
       return JSON.parse(raw) as CurrentUser;
+    } catch {
+      return null;
+    }
+  }
+
+  private refreshPayload(): RefreshTokenRequest | null {
+    try {
+      const user = this.currentUser();
+      const refreshToken = sessionStorage.getItem(REFRESH_TOKEN_KEY);
+      if (!user || !refreshToken) return null;
+      return { userId: user.userId, refreshToken };
     } catch {
       return null;
     }

@@ -13,7 +13,7 @@
   </div>
 
   <!-- Edit modal -->
-  <div class="modal-backdrop" [class.open]="isEditOpen()" (click)="closeEdit()" role="dialog" aria-modal="true" [attr.aria-label]="L('Edit profile', 'تعديل الملف الشخصي')">
+  <div *ngIf="isEditOpen()" class="modal-backdrop" [class.open]="isEditOpen()" (click)="closeEdit()" role="dialog" aria-modal="true" [attr.aria-label]="L('Edit profile', 'تعديل الملف الشخصي')">
     <div class="modal" (click)="$event.stopPropagation()">
       <div class="modal-head">
         <h3>{{ L('Edit Profile', 'تعديل الملف الشخصي') }}</h3>
@@ -54,6 +54,38 @@
     </div>
   </div>
 
+  <!-- Password modal -->
+  <div *ngIf="isPasswordOpen()" class="modal-backdrop" [class.open]="isPasswordOpen()" (click)="closePassword()" role="dialog" aria-modal="true" [attr.aria-label]="L('Change password', 'تغيير كلمة المرور')">
+    <form class="modal" (click)="$event.stopPropagation()" (ngSubmit)="submitPassword()">
+      <div class="modal-head">
+        <h3>{{ L('Change Password', 'تغيير كلمة المرور') }}</h3>
+        <button class="modal-close" type="button" (click)="closePassword()" [disabled]="passwordLoading()" [attr.aria-label]="L('Close', 'إغلاق')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <label class="form-label" for="current-password">{{ L('Current Password', 'كلمة المرور الحالية') }}</label>
+          <input class="form-input" id="current-password" type="password" autocomplete="current-password" [(ngModel)]="passwordForm.currentPassword" name="currentPassword"/>
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="new-password">{{ L('New Password', 'كلمة المرور الجديدة') }}</label>
+          <input class="form-input" id="new-password" type="password" autocomplete="new-password" [(ngModel)]="passwordForm.newPassword" name="newPassword"/>
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="confirm-password">{{ L('Confirm New Password', 'تأكيد كلمة المرور الجديدة') }}</label>
+          <input class="form-input" id="confirm-password" type="password" autocomplete="new-password" [(ngModel)]="passwordForm.confirmPassword" name="confirmPassword"/>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-ghost" type="button" (click)="closePassword()" [disabled]="passwordLoading()">{{ L('Cancel', 'إلغاء') }}</button>
+        <button class="btn-primary" type="submit" [disabled]="passwordLoading()">
+          {{ passwordLoading() ? L('Updating...', 'جارٍ التحديث...') : L('Update Password', 'تحديث كلمة المرور') }}
+        </button>
+      </div>
+    </form>
+  </div>
+
   <!-- Page shell -->
   <div class="page">
 
@@ -66,10 +98,12 @@
       <div class="wrap header-in">
         <!-- Avatar -->
         <div class="avatar-wrap">
+          <input #avatarInput class="avatar-file" type="file" accept="image/*" (change)="uploadAvatar($event)" [disabled]="avatarUploading()" />
           <div class="avatar" [style.background]="user.avatarColor" [attr.aria-label]="L('Profile photo', 'صورة الملف الشخصي')">
-            {{ user.initials }}
+            <img *ngIf="user.avatar" [src]="user.avatar" [alt]="L('Profile photo', 'صورة الملف الشخصي')" />
+            <span *ngIf="!user.avatar">{{ user.initials }}</span>
           </div>
-          <button class="avatar-edit" type="button" [attr.aria-label]="L('Change photo', 'تغيير الصورة')" (click)="changePhoto()">
+          <button class="avatar-edit" type="button" [attr.aria-label]="L('Change photo', 'تغيير الصورة')" [disabled]="avatarUploading()" (click)="avatarInput.click()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </button>
         </div>
@@ -393,6 +427,25 @@
                   </button>
                 </ng-container>
               </article>
+            </div>
+
+            <div class="card alerts-card" [attr.aria-label]="L('Saved alerts', 'التنبيهات المحفوظة')">
+              <div class="card-head">
+                <h2 class="card-title">{{ L('Saved Alerts', 'التنبيهات المحفوظة') }}</h2>
+              </div>
+              <p *ngIf="alertsLoading()" class="empty-state">{{ L('Loading alerts...', 'جارٍ تحميل التنبيهات...') }}</p>
+              <p *ngIf="!alertsLoading() && alerts().length === 0" class="empty-state">
+                {{ L('No saved alerts yet. Create one from a product or AI search.', 'لا توجد تنبيهات محفوظة بعد. أنشئ تنبيهًا من صفحة منتج أو البحث الذكي.') }}
+              </p>
+              <div class="alert-list" *ngIf="!alertsLoading() && alerts().length">
+                <article class="alert-row" *ngFor="let alert of alerts()">
+                  <div>
+                    <strong>{{ alertLabel(alert) }}</strong>
+                    <span>{{ alertTarget(alert) }}</span>
+                  </div>
+                  <small [class.off]="!alert.isActive">{{ alert.isActive ? L('Active', 'نشط') : L('Paused', 'متوقف') }}</small>
+                </article>
+              </div>
             </div>
 
             <!-- Danger zone -->

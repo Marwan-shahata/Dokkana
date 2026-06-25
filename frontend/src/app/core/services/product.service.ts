@@ -11,6 +11,7 @@ import {
   ProductQuery,
   ProductUpdateRequest,
 } from '../models/catalog.models';
+import { toNullableMediaUrl } from './media-url';
 
 // Talks to /api/products. Unwraps the GeneralResult<T> envelope so callers
 // receive plain data and let the HTTP error path surface failures.
@@ -28,13 +29,13 @@ export class ProductService {
     }
     return this.http
       .get<ApiResult<PagedResult<ProductListItem>>>(this.base, { params })
-      .pipe(map(res => res.data!));
+      .pipe(map(res => this.normalizePage(res.data!)));
   }
 
   getById(id: number): Observable<ProductDetails> {
     return this.http
       .get<ApiResult<ProductDetails>>(`${this.base}/${id}`)
-      .pipe(map(res => res.data!));
+      .pipe(map(res => this.normalizeDetails(res.data!)));
   }
 
   getByStore(
@@ -45,13 +46,13 @@ export class ProductService {
     const params = new HttpParams().set('page', page).set('pageSize', pageSize);
     return this.http
       .get<ApiResult<PagedResult<ProductListItem>>>(`${this.base}/store/${storeId}`, { params })
-      .pipe(map(res => res.data!));
+      .pipe(map(res => this.normalizePage(res.data!)));
   }
 
   create(payload: ProductCreateRequest): Observable<ProductDetails> {
     return this.http
       .post<ApiResult<ProductDetails>>(this.base, payload)
-      .pipe(map(res => res.data!));
+      .pipe(map(res => this.normalizeDetails(res.data!)));
   }
 
   update(id: number, payload: ProductUpdateRequest): Observable<ApiResult<unknown>> {
@@ -60,5 +61,26 @@ export class ProductService {
 
   delete(id: number): Observable<ApiResult<unknown>> {
     return this.http.delete<ApiResult<unknown>>(`${this.base}/${id}`);
+  }
+
+  private normalizePage(page: PagedResult<ProductListItem>): PagedResult<ProductListItem> {
+    return {
+      ...page,
+      items: page.items.map(item => this.normalizeListItem(item)),
+    };
+  }
+
+  private normalizeListItem(item: ProductListItem): ProductListItem {
+    return {
+      ...item,
+      imageUrl: toNullableMediaUrl(item.imageUrl),
+    };
+  }
+
+  private normalizeDetails(product: ProductDetails): ProductDetails {
+    return {
+      ...product,
+      imageUrl: toNullableMediaUrl(product.imageUrl),
+    };
   }
 }

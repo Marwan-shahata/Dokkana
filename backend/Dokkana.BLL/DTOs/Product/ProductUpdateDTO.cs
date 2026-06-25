@@ -16,7 +16,7 @@ namespace Dokkana.BLL.DTOs.Product
         [Range(0, int.MaxValue)]
         public int? Count { get; set; }
 
-        [MaxLength(300)]
+        [MaxLength(2048)]
         public string? ImageUrl { get; set; }
 
         [MaxLength(50)]

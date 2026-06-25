@@ -3,6 +3,7 @@ using Dokkana.BLL.Managers;
 using Dokkana.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 
 namespace Dokkana.API.Controllers
@@ -29,6 +30,7 @@ namespace Dokkana.API.Controllers
         }
 
         [HttpPost("login")]
+        [EnableRateLimiting("login")]
         public async Task<IActionResult> Login(LoginDTO dto)
         {
             var result = await _authManager.LoginAsync(dto);
@@ -38,9 +40,23 @@ namespace Dokkana.API.Controllers
             return Ok(result);
         }
 
-        [HttpPost("logout")]
-        public IActionResult Logout()
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh(RefreshTokenDTO dto)
         {
+            var result = await _authManager.RefreshAsync(dto);
+            return result.Success ? Ok(result) : Unauthorized(result);
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout(RefreshTokenDTO? dto)
+        {
+            if (dto is not null &&
+                !string.IsNullOrWhiteSpace(dto.UserId) &&
+                !string.IsNullOrWhiteSpace(dto.RefreshToken))
+            {
+                await _authManager.RevokeRefreshTokenAsync(dto);
+            }
+
             return Ok(GeneralResult.Ok("Logged out successfully."));
         }
 
@@ -65,6 +81,17 @@ namespace Dokkana.API.Controllers
             if (userId is null) return Unauthorized(GeneralResult.Fail("Missing user."));
 
             var result = await _authManager.UpdateProfileAsync(userId, dto);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpPut("me/password")]
+        [Authorize]
+        public async Task<IActionResult> ChangePassword(ChangePasswordDTO dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId is null) return Unauthorized(GeneralResult.Fail("Missing user."));
+
+            var result = await _authManager.ChangePasswordAsync(userId, dto);
             return result.Success ? Ok(result) : BadRequest(result);
         }
     }

@@ -7,8 +7,10 @@ import {
   Store,
   StoreCreateRequest,
   StoreDetails,
+  StoreTier,
   StoreUpdateRequest,
 } from '../models/catalog.models';
+import { toNullableMediaUrl } from './media-url';
 
 // Talks to /api/stores. Public reads (approved list + details) plus the
 // owner's own store and merchant profile mutations.
@@ -21,7 +23,7 @@ export class StoreService {
   getAll(): Observable<Store[]> {
     return this.http
       .get<ApiResult<Store[]>>(this.base)
-      .pipe(map(res => res.data ?? []));
+      .pipe(map(res => (res.data ?? []).map(store => this.normalizeStore(store))));
   }
 
   // Admin only: approve a pending store.
@@ -37,29 +39,49 @@ export class StoreService {
   getApproved(): Observable<Store[]> {
     return this.http
       .get<ApiResult<Store[]>>(`${this.base}/approved`)
-      .pipe(map(res => res.data ?? []));
+      .pipe(map(res => (res.data ?? []).map(store => this.normalizeStore(store))));
   }
 
   getById(id: number): Observable<StoreDetails> {
     return this.http
       .get<ApiResult<StoreDetails>>(`${this.base}/${id}`)
-      .pipe(map(res => res.data!));
+      .pipe(map(res => this.normalizeStoreDetails(res.data!)));
   }
 
   // StoreOwner only: requires a valid JWT (added by the auth interceptor).
   getMy(): Observable<Store> {
     return this.http
       .get<ApiResult<Store>>(`${this.base}/my`)
-      .pipe(map(res => res.data!));
+      .pipe(map(res => this.normalizeStore(res.data!)));
   }
 
   create(payload: StoreCreateRequest): Observable<Store> {
     return this.http
       .post<ApiResult<Store>>(this.base, payload)
-      .pipe(map(res => res.data!));
+      .pipe(map(res => this.normalizeStore(res.data!)));
   }
 
   update(id: number, payload: StoreUpdateRequest): Observable<ApiResult<unknown>> {
     return this.http.put<ApiResult<unknown>>(`${this.base}/${id}`, payload);
+  }
+
+  // StoreOwner upgrades/downgrades their own plan ("Upgrade to Pro");
+  // Admin may set any store's plan. PUT /api/stores/{id}/tier.
+  setTier(id: number, tier: StoreTier): Observable<ApiResult<unknown>> {
+    return this.http.put<ApiResult<unknown>>(`${this.base}/${id}/tier`, { tier });
+  }
+
+  private normalizeStore(store: Store): Store {
+    return {
+      ...store,
+      logoUrl: toNullableMediaUrl(store.logoUrl),
+    };
+  }
+
+  private normalizeStoreDetails(store: StoreDetails): StoreDetails {
+    return {
+      ...store,
+      logoUrl: toNullableMediaUrl(store.logoUrl),
+    };
   }
 }

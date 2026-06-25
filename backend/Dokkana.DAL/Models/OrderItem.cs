@@ -14,6 +14,10 @@ namespace Dokkana.DAL.Models
         public int? ProductId { get; set; }
         public Product? Product { get; set; }
 
+        // Snapshotted store id for store-owner analytics / Business Copilot, so a
+        // sale stays attributed to its store even if the product is later removed.
+        public int StoreId { get; set; }
+
         public string ProductTitle { get; set; } = string.Empty;
         public string? ImageUrl { get; set; }
         public string StoreName { get; set; } = string.Empty;

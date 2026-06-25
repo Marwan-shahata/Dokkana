@@ -9,7 +9,6 @@ import {
   untracked,
  } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CartApiService } from '../../core/services/cart-api.service';
 import { OrderService } from '../../core/services/order.service';
@@ -38,7 +37,7 @@ export interface CartItem {
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   templateUrl: './cart.html',
   styleUrl: './cart.css',
 })
@@ -78,16 +77,9 @@ export class Cart implements OnDestroy {
   toastMsg  = signal<string | null>(null);
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
 
-  // Promo
-  promoCode  = '';
-  promoApplied = signal(false);
-  promoError   = signal(false);
-  readonly VALID_PROMO = 'DOKKANA10';
-  readonly PROMO_DISCOUNT = 0.10; // 10%
+  // Element focused before the drawer opened, so we can restore focus on close.
+  private previouslyFocused: HTMLElement | null = null;
 
-  // Delivery
-  readonly FREE_DELIVERY_THRESHOLD = 500;
-  readonly DELIVERY_FEE = 49;
   readonly MAX_CART_QUANTITY = 20;
   readonly skeletonRows = [0, 1, 2];
 
@@ -133,36 +125,17 @@ export class Cart implements OnDestroy {
     return Math.max(1, Math.min(stock, this.MAX_CART_QUANTITY));
   }
 
-  // Computed totals
+  // Computed totals. In-store pickup means no delivery/discount: the total the
+  // shopper sees is exactly what the backend records as the order total.
   subtotal = computed(() =>
     this.items().reduce((sum, i) => sum + i.price * i.quantity, 0)
   );
 
-  discount = computed(() =>
-    this.promoApplied() ? Math.round(this.subtotal() * this.PROMO_DISCOUNT) : 0
-  );
-
-  deliveryFee = computed(() =>
-    this.subtotal() - this.discount() >= this.FREE_DELIVERY_THRESHOLD ? 0 : this.DELIVERY_FEE
-  );
-
-  total = computed(() =>
-    this.subtotal() - this.discount() + this.deliveryFee()
-  );
+  total = computed(() => this.subtotal());
 
   itemCount = computed(() =>
     this.items().reduce((sum, i) => sum + i.quantity, 0)
   );
-
-  freeDeliveryRemaining = computed(() => {
-    const rem = this.FREE_DELIVERY_THRESHOLD - (this.subtotal() - this.discount());
-    return rem > 0 ? rem : 0;
-  });
-
-  freeDeliveryProgress = computed(() => {
-    const pct = ((this.subtotal() - this.discount()) / this.FREE_DELIVERY_THRESHOLD) * 100;
-    return Math.min(pct, 100);
-  });
 
   private loadCart(): void {
     this.loading.set(true);
@@ -171,7 +144,6 @@ export class Cart implements OnDestroy {
     if (!this.auth.isLoggedIn()) {
       this.items.set([]);
       this.cartState.clear();
-      this.resetPromo();
       this.loading.set(false);
       return;
     }
@@ -181,13 +153,11 @@ export class Cart implements OnDestroy {
         const items = cart.items.map((i, idx) => this.toCartItem(i, idx));
         this.items.set(items);
         this.cartState.setFromCart(cart);
-        if (items.length === 0) this.resetPromo();
         this.loading.set(false);
       },
       error: () => {
         this.items.set([]);
         this.cartState.clear();
-        this.resetPromo();
         this.loading.set(false);
       },
     });
@@ -203,12 +173,51 @@ export class Cart implements OnDestroy {
     if (this.isOpen()) this.closeCart();
   }
 
+  // Keep keyboard focus inside the open drawer (Tab / Shift+Tab wrap around,
+  // and focus that escapes the drawer is pulled back). This is the focus trap
+  // the drawer was missing - Escape and scroll-lock were already handled.
+  @HostListener('document:keydown.tab', ['$event'])
+  @HostListener('document:keydown.shift.tab', ['$event'])
+  onTab(event: Event): void {
+    if (!this.isOpen()) return;
+    const e = event as KeyboardEvent;
+    const drawer = document.querySelector<HTMLElement>('.cart-drawer');
+    if (!drawer) return;
+
+    const focusables = Array.from(
+      drawer.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    ).filter(el => el.offsetParent !== null);
+    if (focusables.length === 0) return;
+
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    const active = document.activeElement as HTMLElement | null;
+
+    if (!active || !drawer.contains(active)) {
+      e.preventDefault();
+      first.focus();
+    } else if (e.shiftKey && active === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && active === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+
   // Open / Close
   openCart(): void {
+    this.previouslyFocused = document.activeElement as HTMLElement | null;
     this.isOpen.set(true);
     this.isLeaving.set(false);
     this.pickupCode.set(null);
     document.body.style.overflow = 'hidden';
+    // Move focus into the drawer once it has rendered.
+    setTimeout(() => {
+      document.querySelector<HTMLElement>('.cart-drawer .close-btn')?.focus();
+    }, 60);
   }
 
   closeCart(): void {
@@ -217,6 +226,9 @@ export class Cart implements OnDestroy {
       this.isOpen.set(false);
       this.isLeaving.set(false);
       document.body.style.overflow = '';
+      // Return focus to whatever opened the drawer (e.g. the navbar cart icon).
+      this.previouslyFocused?.focus?.();
+      this.previouslyFocused = null;
     }, 380);
   }
 
@@ -239,7 +251,6 @@ export class Cart implements OnDestroy {
     const name = this.items().find(i => i.id === id)?.name ?? this.L('Item', 'منتج');
     setTimeout(() => {
       this.items.update(list => list.filter(i => i.id !== id));
-      if (this.items().length === 0) this.resetPromo();
     }, 340);
     // Persist removal to the backend cart (id == productId).
     this.cartApi.removeItem(id).subscribe({
@@ -320,25 +331,7 @@ export class Cart implements OnDestroy {
       },
       error: () => this.loadCart(),
     });
-    this.resetPromo();
     this.toast(this.L('Cart cleared', 'تم تفريغ السلة'));
-  }
-
-  applyPromo(): void {
-    if (this.promoCode.trim().toUpperCase() === this.VALID_PROMO) {
-      this.promoApplied.set(true);
-      this.promoError.set(false);
-      this.toast(this.L('Promo code applied - 10% off!', 'تم تطبيق الخصم - ١٠٪'));
-    } else {
-      this.promoError.set(true);
-      setTimeout(() => this.promoError.set(false), 2800);
-    }
-  }
-
-  removePromo(): void {
-    this.promoApplied.set(false);
-    this.promoCode = '';
-    this.toast(this.L('Promo code removed', 'تم حذف كود الخصم'));
   }
 
   checkout(): void {
@@ -353,7 +346,6 @@ export class Cart implements OnDestroy {
           this.pickupCode.set(res.data.pickupCode);
           this.items.set([]);
           this.cartState.clear();
-          this.resetPromo();
           this.toast(this.L('Reservation confirmed!', 'تم تأكيد الحجز!'));
         } else {
           this.toast(res.message || this.L('Checkout failed.', 'فشل تأكيد الحجز.'));
@@ -395,11 +387,5 @@ export class Cart implements OnDestroy {
     this.toastMsg.set(msg);
     if (this.toastTimer) clearTimeout(this.toastTimer);
     this.toastTimer = setTimeout(() => this.toastMsg.set(null), 3000);
-  }
-
-  private resetPromo(): void {
-    this.promoCode = '';
-    this.promoApplied.set(false);
-    this.promoError.set(false);
   }
 }

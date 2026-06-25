@@ -17,3 +17,6 @@ dist/
 .idea/
 *.swp
 .DS_Store
+
+# Local ASP.NET runtime keys
+backend/Dokkana.API/App_Data/DataProtectionKeys/

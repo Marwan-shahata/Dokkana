@@ -36,6 +36,124 @@
   margin: 0;
 }
 
+.stores-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 520px;
+  margin: 24px auto 0;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--cream);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.stores-search:focus-within {
+  border-color: var(--clay);
+  box-shadow: var(--shadow);
+}
+.stores-search svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  color: var(--ink-soft);
+}
+.stores-search input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  padding: 13px 0;
+}
+.stores-search input::placeholder {
+  color: var(--ink-soft);
+}
+
+.sponsored-stores {
+  display: grid;
+  gap: 14px;
+  margin: -18px 0 34px;
+  padding: 18px;
+  border: 1px solid color-mix(in oklch, var(--ochre) 34%, var(--border));
+  border-radius: var(--radius-md);
+  background: color-mix(in oklch, var(--ochre) 8%, var(--cream));
+}
+
+.sponsored-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 12px;
+}
+
+.sponsored-head span,
+.ad-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  border-radius: var(--radius-pill);
+  background: var(--ochre);
+  color: var(--ink);
+  padding: 0 9px;
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.sponsored-head strong {
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.sponsored-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.sponsored-store {
+  display: flex;
+  gap: 13px;
+  align-items: center;
+  text-align: start;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--cream);
+  color: var(--ink);
+}
+
+.sponsored-store .logo {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(140deg, var(--clay), var(--nile));
+  color: var(--paper);
+  font-weight: 800;
+}
+
+.sponsored-store .info {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.sponsored-store .name {
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.sponsored-store .desc {
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+}
+
 .store-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -87,6 +205,22 @@
 .store-card .name {
   font-weight: 700;
   color: var(--ink);
+}
+.store-card .pro-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-inline-start: 6px;
+  padding: 1px 9px;
+  border-radius: var(--radius-pill);
+  background: var(--ochre);
+  color: var(--ink);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: middle;
+  white-space: nowrap;
 }
 .store-card .addr {
   font-size: 0.82rem;

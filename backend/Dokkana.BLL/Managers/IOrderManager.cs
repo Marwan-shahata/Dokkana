@@ -13,5 +13,15 @@ namespace Dokkana.BLL.Managers
         // Admin: every order across all users, and status updates.
         Task<IEnumerable<OrderAdminSummaryDTO>> GetAllAsync();
         Task<GeneralResult> UpdateStatusAsync(int orderId, string status);
+
+        // Store owner: orders that include their products, and status updates
+        // scoped to orders that contain at least one of their products.
+        Task<IEnumerable<StoreOrderDTO>> GetStoreOrdersAsync(string ownerId);
+        Task<GeneralResult> UpdateStatusForStoreAsync(int orderId, string status, string ownerId);
+
+        // System: auto-cancel stale reservations and restore their stock.
+        Task<int> CancelExpiredReservationsAsync(
+            TimeSpan maxReservationAge,
+            CancellationToken cancellationToken = default);
     }
 }

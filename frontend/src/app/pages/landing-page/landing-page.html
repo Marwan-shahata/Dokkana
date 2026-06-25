@@ -1,136 +1,197 @@
-<!-- ════════════════ HERO ════════════════ -->
-<header class="hero" id="hero">
-  <div class="hero-bg"></div>
-  <div class="wrap hero-in">
-    <span class="eyebrow"><i></i>{{ L('AI fashion discovery · Egypt', 'اكتشاف أزياء بالذكاء الاصطناعي · مصر') }}</span>
+<main class="landing-shell">
+  <section id="hero" class="hero-section">
+    <div class="hero-photo" aria-hidden="true"></div>
+    <div class="hero-shade" aria-hidden="true"></div>
 
-    <h1 class="hero-title" *ngIf="!lang.isAr()">Find your style in <em>local</em> stores.</h1>
-    <h1 class="hero-title" *ngIf="lang.isAr()">لاقي ستايلك في محلات <em>جنبك</em>.</h1>
+    <div class="landing-wrap hero-grid">
+      <div class="hero-copy" data-reveal>
+        <span class="eyebrow">
+          <span></span>
+          {{ L('Local fashion, searchable', 'موضة محلية تلاقيها بالبحث') }}
+        </span>
+        <h1>{{ L('Ask for the outfit. Walk into the shop.', 'قولنا اللوك، وروح للمحل.') }}</h1>
+        <p>
+          {{ L('Dokkana turns natural language into nearby fashion options, with prices, stores, and Arabic or English search in one flow.', 'دكانة بتحول وصفك لاقتراحات لبس قريبة منك، بالأسعار والمحلات، وتدور بالعربي أو الإنجليزي في نفس المكان.') }}
+        </p>
 
-    <p class="hero-lead">{{ L('Describe what you want in Arabic or English. Dokkana searches real stock from shops near you, instantly.', 'اوصف اللي عايزه بالعربي أو الإنجليزي. دكانة بتدوّر في بضاعة حقيقية من محلات قريبة منك، فوراً.') }}</p>
-
-    <div class="hero-search">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
-      <input [(ngModel)]="query" (keydown.enter)="search()"
-             [placeholder]="L('Try: red linen dress under 500 EGP', 'جرّب: فستان كتان أحمر تحت ٥٠٠ جنيه')" />
-      <button class="go" (click)="search()">{{ L('Search', 'بحث') }}</button>
-    </div>
-
-    <div class="hero-chips">
-      <span class="lbl">{{ L('Popular:', 'شائع:') }}</span>
-      <button *ngFor="let c of chips" [class.ar]="c.ar" (click)="searchFromChip(c.q, c.label)">{{ c.label }}</button>
-    </div>
-
-    <div class="hero-stats">
-      <div class="s"><b>128+</b><span>{{ L('Local stores', 'محل محلي') }}</span></div>
-      <div class="s"><b>AR / EN</b><span>{{ L('Bilingual AI', 'ذكاء ثنائي اللغة') }}</span></div>
-      <div class="s"><b>&lt; 2s</b><span>{{ L('To results', 'للنتائج') }}</span></div>
-    </div>
-  </div>
-</header>
-
-<!-- ════════════════ WHY ════════════════ -->
-<section class="block" id="why">
-  <div class="wrap why-grid">
-    <div class="sec-head reveal">
-      <div class="sec-tag">{{ L('Why Dokkana', 'ليه دكانة') }}</div>
-      <h2 class="sec-title">{{ L('Built for how Egypt actually shops', 'مصمم لطريقة تسوّق مصر فعلاً') }}</h2>
-    </div>
-    <div class="why-cols">
-      <div class="why-item reveal" *ngFor="let f of features">
-        <div class="ic" [innerHTML]="svg(f.icon)"></div>
-        <h4>{{ L(f.en, f.ar) }}</h4>
-        <p>{{ L(f.enD, f.arD) }}</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ════════════════ TRENDING ════════════════ -->
-<section class="block alt themed" id="trending">
-  <div class="wrap">
-    <div class="t-head reveal">
-      <div class="sec-tag">{{ L('Shop the catalog', 'تسوّق الكتالوج') }}</div>
-      <h2 class="sec-title">{{ L('Trending in local stores', 'الرائج في المحلات المحلية') }}</h2>
-
-      <div class="tabs">
-        <button *ngFor="let t of tabs" class="tab" [class.active]="activeTab === t.id"
-                (click)="selectTab(t.id)">{{ L(t.en, t.ar) }}</button>
-      </div>
-
-      <div class="ai-banner" *ngIf="aiTags().length">
-        <b>{{ L('AI understood:', 'الذكاء فهم:') }}</b>
-        <span class="tag" *ngFor="let tg of aiTags()">{{ tg }}</span>
-      </div>
-
-      <div class="ai-answer" *ngIf="searching() || aiAnswer()">
-        <span *ngIf="searching()">{{ L('Searching…', 'جاري البحث…') }}</span>
-        <span *ngIf="!searching() && aiAnswer()">{{ aiAnswer() }}</span>
-      </div>
-    </div>
-
-    <div class="catalog-state" *ngIf="loading() && filtered.length === 0">
-      {{ L('Loading products...', 'جار تحميل المنتجات...') }}
-    </div>
-
-    <div class="catalog-state" *ngIf="!loading() && filtered.length === 0">
-      {{ L('No products match this category yet.', 'لا توجد منتجات في هذا التصنيف حالياً.') }}
-    </div>
-
-    <div class="pgrid" *ngIf="filtered.length > 0">
-      <article class="pcard" *ngFor="let p of filtered" [class.clickable]="p.fromApi" (click)="openProduct(p, $event)">
-        <div class="ph" [style.background]="p.gradient">
-          <span class="ph-icon" [innerHTML]="garment(p.icon)"></span>
-          <img *ngIf="p.image" class="ph-img" [src]="p.image" (error)="onImgError($event)" alt="" loading="lazy" />
-          <span class="cat">{{ catLabel(p.cat) }}</span>
-          <button *ngIf="canUseShopperActions()" class="fav" [class.on]="p.fav" (click)="toggleFav(p, $event)" aria-label="favorite">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.5-9.5-8.5C.8 9.6 2 6 5.3 6c1.9 0 3 1 3.7 2 .7-1 1.8-2 3.7-2 3.3 0 4.5 3.6 2.8 6.5C19 16.5 12 21 12 21z"/></svg>
+        <div class="hero-actions" aria-label="Primary actions">
+          <button type="button" class="btn-primary" (click)="openAiSearch()">
+            <span aria-hidden="true">⌕</span>
+            {{ L('Try AI Search', 'جرب البحث الذكي') }}
+          </button>
+          <button type="button" class="btn-glass" (click)="viewStores()">
+            {{ L('Browse stores', 'تصفح المحلات') }}
           </button>
         </div>
-        <div class="pb">
-          <div class="store">{{ p.store }}</div>
-          <div class="nm">{{ L(p.name, p.nameAr) }}</div>
-          <div class="stars"><span *ngFor="let s of stars(p.rating)" [class.on]="s">★</span></div>
-          <div class="row">
-            <div class="pr">{{ p.price }} <small>EGP</small></div>
-            <button *ngIf="canUseShopperActions()" class="add" (click)="addToCart(p, $event)" aria-label="add to cart">+</button>
-          </div>
+      </div>
+
+      <aside class="ai-entry" aria-label="AI search preview" data-reveal>
+        <div class="entry-topline">
+          <span>{{ L('AI assistant', 'مساعد دكانة') }}</span>
+          <button type="button" (click)="openAiSearch()">{{ L('Open', 'افتح') }}</button>
         </div>
+
+        <label class="search-entry">
+          <span aria-hidden="true">⌕</span>
+          <input
+            type="text"
+            [(ngModel)]="query"
+            (keydown.enter)="openAiSearch()"
+            [attr.aria-label]="L('Describe what you want to buy', 'اكتب اللي عايز تشتريه')"
+            [placeholder]="searchPlaceholder()"
+          />
+          <button type="button" (click)="openAiSearch()">
+            {{ L('Search', 'دور') }}
+          </button>
+        </label>
+
+        <div class="entry-hint">
+          {{ L('The full assistant handles images, exact budgets, nearby stock, and online fallbacks.', 'المساعد الكامل بيفهم الصور، الميزانية الدقيقة، المتاح قريب منك، وبدائل أونلاين لو محتاج.') }}
+        </div>
+
+        <div class="prompt-row" aria-label="Example searches">
+          <button type="button" *ngFor="let chip of promptChips" (click)="usePrompt(chip)">
+            {{ L(chip.en, chip.ar) }}
+          </button>
+        </div>
+
+        <div class="trend-row" *ngIf="trendingQueries().length" aria-label="Trending searches">
+          <span>{{ L('Trending', 'الأكثر بحثاً') }}</span>
+          <button type="button" *ngFor="let trend of trendingQueries()" (click)="useTrend(trend)">
+            {{ trend.query }}
+          </button>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="signal-band" aria-label="Dokkana proof points" data-reveal>
+    <div class="landing-wrap trust-strip">
+      <article *ngIf="storeCount() > 0">
+        <strong>{{ storeCount() }}</strong>
+        <span>{{ L(storeCount() === 1 ? 'store ready for discovery' : 'stores ready for discovery', 'محل جاهز للاكتشاف') }}</span>
+      </article>
+      <article *ngFor="let note of trustNotes">
+        <strong>{{ L(note.value, note.arValue) }}</strong>
+        <span>{{ L(note.enLabel, note.arLabel) }}</span>
       </article>
     </div>
+  </section>
 
-    <div class="view-all">
-      <button type="button" (click)="showCatalogToast()">
-        <span>{{ L('View all products', 'عرض كل المنتجات') }}</span>
-        <span aria-hidden="true">→</span>
-      </button>
-    </div>
-  </div>
-</section>
+  <section id="experience" class="section journey-section" data-reveal>
+    <div class="landing-wrap">
+      <div class="section-heading">
+        <span>{{ L('How it works', 'إزاي دكانة بتشتغل') }}</span>
+        <h2>{{ L('One search can become a real store visit.', 'بحث واحد ممكن يوديك لمحل حقيقي.') }}</h2>
+      </div>
 
-<!-- ════════════════ EXPERIENCE ════════════════ -->
-<section class="block" id="experience">
-  <div class="wrap exp-grid">
-    <div class="exp-img reveal">
-      <img src="/about.png" (error)="onImgError($event)" alt="" />
-      <div class="exp-card">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
-        <div><b>{{ L('Reserved & ready', 'محجوز وجاهز') }}</b><span>{{ L('Pickup code DK-4827', 'كود الاستلام DK-4827') }}</span></div>
+      <div class="journey-grid">
+        <article *ngFor="let step of journeySteps">
+          <span>{{ step.number }}</span>
+          <h3>{{ L(step.enTitle, step.arTitle) }}</h3>
+          <p>{{ L(step.enBody, step.arBody) }}</p>
+        </article>
       </div>
     </div>
-    <div class="reveal">
-      <div class="sec-tag">{{ L('The experience', 'التجربة') }}</div>
-      <h2 class="sec-title">{{ L('From a sentence to a shop visit', 'من جملة لزيارة محل') }}</h2>
-      <p class="sec-sub">{{ L('Three steps, no friction, the way Egypt really buys.', 'ثلاث خطوات، بدون تعقيد، بالطريقة اللي مصر بتشتري بيها فعلاً.') }}</p>
-      <div class="exp-list">
-        <div class="exp-li" *ngFor="let s of steps">
-          <div class="n">{{ s.n }}</div>
-          <div><b>{{ L(s.en, s.ar) }}</b><p>{{ L(s.enD, s.arD) }}</p></div>
+  </section>
+
+  <section id="trending" class="section discovery-section" data-reveal>
+    <div class="landing-wrap discovery-grid">
+      <div class="discovery-copy">
+        <span class="section-kicker">{{ L('Discovery preview', 'لمحة عن الاكتشاف') }}</span>
+        <h2>{{ L('Keep the landing page focused, send the heavy search to the assistant.', 'خلي الصفحة بسيطة، وسيب البحث التقيل للمساعد.') }}</h2>
+        <p>
+          {{ L('The home page now explains why Dokkana matters, then routes shoppers to AI Search, stores, or the catalog without repeating the full result screen.', 'الصفحة الرئيسية بتشرح قيمة دكانة، وبعدها توصلك للبحث الذكي أو المحلات أو الكتالوج من غير ما تكرر شاشة النتائج.') }}
+        </p>
+        <div class="split-actions">
+          <button type="button" class="btn-primary btn-on-light" (click)="openAiSearch()">
+            {{ L('Open AI Search', 'افتح البحث الذكي') }}
+          </button>
+          <button type="button" class="text-link" (click)="openShop()">
+            {{ L('Browse stores', 'تصفح المحلات') }}
+          </button>
         </div>
       </div>
-    </div>
-  </div>
-</section>
 
-<!-- toast -->
-<div class="toast" [class.show]="toastMsg()"><span class="ok">✓</span>{{ toastMsg() }}</div>
+      <div class="preview-stack" aria-label="Featured products">
+        <div class="preview-loading" *ngIf="loadingPreview()">
+          {{ L('Loading local picks...', 'جار تحميل اختيارات محلية...') }}
+        </div>
+
+        <button
+          type="button"
+          class="preview-product sponsored"
+          *ngFor="let product of sponsoredPreview()"
+          (click)="openProduct(product)"
+        >
+          <img [src]="product.image" [alt]="product.name" loading="lazy" (error)="onPreviewImageError($event)" />
+          <span class="ad-label">{{ L('Sponsored', 'إعلان') }}</span>
+          <span class="preview-meta">{{ L(product.category, product.categoryAr || product.category) }}</span>
+          <strong>{{ L(product.name, product.nameAr || product.name) }}</strong>
+          <small>{{ L(product.store, product.storeAr || product.store) }}</small>
+          <b>{{ product.price | number:'1.0-0' }} {{ L('EGP', 'جنيه') }}</b>
+        </button>
+
+        <button
+          type="button"
+          class="preview-product"
+          *ngFor="let product of productPreview()"
+          (click)="openProduct(product)"
+        >
+          <img [src]="product.image" [alt]="product.name" loading="lazy" (error)="onPreviewImageError($event)" />
+          <span class="preview-meta">{{ L(product.category, product.categoryAr || product.category) }}</span>
+          <strong>{{ L(product.name, product.nameAr || product.name) }}</strong>
+          <small>{{ L(product.store, product.storeAr || product.store) }}</small>
+          <b>{{ product.price | number:'1.0-0' }} {{ L('EGP', 'جنيه') }}</b>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section merchant-section" data-reveal>
+    <div class="landing-wrap merchant-grid">
+      <div class="merchant-visual" aria-hidden="true">
+        <img src="/about.png" alt="" loading="lazy" />
+      </div>
+
+      <div class="merchant-copy">
+        <span class="section-kicker">{{ L('For store owners', 'لأصحاب المحلات') }}</span>
+        <h2>{{ L('Bring your local stock into the search journey.', 'دخل منتجات محلك في رحلة البحث.') }}</h2>
+        <p>
+          {{ L('Dokkana is not just a storefront. It helps products become findable by occasion, budget, color, and availability.', 'دكانة مش مجرد واجهة محل. بتخلي منتجاتك تظهر حسب المناسبة والميزانية واللون والتوفر.') }}
+        </p>
+
+        <div class="merchant-points">
+          <span>{{ L('Product catalog', 'كتالوج المنتجات') }}</span>
+          <span>{{ L('Store profile', 'صفحة المحل') }}</span>
+          <span>{{ L('Cart and orders', 'السلة والطلبات') }}</span>
+        </div>
+
+        <button type="button" class="btn-primary btn-on-light" (click)="openSignup()">
+          {{ L('Create store account', 'أنشئ حساب محل') }}
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="final-band" data-reveal>
+    <div class="landing-wrap final-grid">
+      <div>
+        <span>{{ L('Ready when the shopper is specific.', 'جاهزة لما طلب العميل يبقى واضح.') }}</span>
+        <h2>{{ L('Search by need, not by menu.', 'دور بالاحتياج، مش بالقائمة.') }}</h2>
+      </div>
+      <div class="final-actions">
+        <button type="button" class="btn-primary" (click)="openAiSearch()">
+          {{ L('Start searching', 'ابدأ البحث') }}
+        </button>
+        <button type="button" class="btn-glass" (click)="viewStores()">
+          {{ L('Explore stores', 'استكشف المحلات') }}
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div class="toast" *ngIf="toast()" role="status" aria-live="polite">
+    {{ toast() }}
+  </div>
+</main>

@@ -84,8 +84,22 @@
   background: var(--porcelain);
   color: var(--ink-soft);
 }
+.store-header .badge.pro {
+  background: var(--ochre);
+  color: var(--ink);
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
 
-.save-store {
+.store-actions-main {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.save-store,
+.whatsapp-store {
   margin-top: 14px;
   border: 1px solid var(--border);
   border-radius: 999px;
@@ -93,6 +107,17 @@
   color: var(--ink);
   padding: 10px 16px;
   font-weight: 800;
+}
+
+.store-actions-main .save-store,
+.store-actions-main .whatsapp-store {
+  margin-top: 0;
+}
+
+.whatsapp-store {
+  border-color: color-mix(in oklch, var(--nile) 42%, var(--border));
+  background: color-mix(in oklch, var(--nile) 10%, var(--porcelain));
+  color: var(--nile-deep);
 }
 
 .save-store:disabled {
@@ -121,6 +146,11 @@
 .section-title {
   margin: 0 0 20px;
   color: var(--ink);
+}
+
+.store-locate {
+  margin: 8px 0 36px;
+  max-width: 560px;
 }
 
 .product-grid {
@@ -188,6 +218,24 @@
   margin-top: 4px;
   font-weight: 700;
   color: var(--clay);
+}
+
+.product-card .p-price s {
+  margin-inline-end: 5px;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+
+.sale-tag {
+  display: inline-flex;
+  width: max-content;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--ochre) 24%, var(--cream));
+  color: var(--clay-deep);
+  font-size: 0.72rem;
+  font-weight: 800;
 }
 
 .skeleton-card {

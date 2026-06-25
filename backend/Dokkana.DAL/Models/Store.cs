@@ -13,6 +13,13 @@ namespace Dokkana.DAL.Models
         public double? Longitude { get; set; }
         public bool IsApproved { get; set; }
 
+        // Commercial plan (Free / Pro). Drives promoted placement and the Pro badge.
+        public StoreTier Tier { get; set; } = StoreTier.Free;
+        public string SubscriptionStatus { get; set; } = "Free";
+        public DateTime? SubscriptionRenewsAt { get; set; }
+        public decimal WalletBalance { get; set; }
+        public string? WhatsAppPhone { get; set; }
+
         // Owner (Identity user id is a string).
         public string? OwnerId { get; set; }
         public ApplicationUser? Owner { get; set; }

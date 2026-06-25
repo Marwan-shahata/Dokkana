@@ -82,6 +82,19 @@
           <line x1="7" y1="7" x2="7.01" y2="7" />
         </svg>
         <svg
+          *ngIf="item.icon === 'megaphone'"
+          class="nav-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M3 11v3a2 2 0 0 0 2 2h2l4 5v-5l8-3V6L7 9H5a2 2 0 0 0-2 2z" />
+          <path d="M21 9v1" />
+        </svg>
+        <svg
           *ngIf="item.icon === 'box'"
           class="nav-icon"
           viewBox="0 0 24 24"
@@ -129,6 +142,9 @@
         <span class="nav-badge" *ngIf="item.id === 'stores' && pendingCount() > 0">
           {{ pendingCount() }}
         </span>
+        <span class="nav-badge" *ngIf="item.id === 'campaigns' && pendingCampaignsCount() > 0">
+          {{ pendingCampaignsCount() }}
+        </span>
       </button>
     </nav>
 
@@ -173,7 +189,7 @@
           </svg>
         </button>
         <div class="page-title">
-          <span class="page-title-text">{{ sectionTitle() }}</span>
+          <h1 class="page-title-text">{{ sectionTitle() }}</h1>
           <span class="page-breadcrumb">{{ lang.t('Dokkana Admin', 'إدارة دكانة') }}</span>
         </div>
       </div>
@@ -253,10 +269,18 @@
 
     <!-- Content -->
     <main class="content">
-      <!-- Backend error banner (stores / categories load or action failures) -->
-      <div *ngIf="error()" class="admin-error-banner" role="alert">
-        {{ error() }}
-        <button type="button" (click)="error.set('')" aria-label="Dismiss">✕</button>
+      <!-- Backend error banners (parallel loads can fail independently) -->
+      <div *ngIf="errors().length" class="admin-error-stack" aria-live="polite">
+        <div *ngFor="let message of errors(); let i = index" class="admin-error-banner" role="alert">
+          <span>{{ message }}</span>
+          <button
+            type="button"
+            (click)="dismissError(i)"
+            [attr.aria-label]="lang.t('Dismiss error', 'إغلاق الخطأ')"
+          >
+            ✕
+          </button>
+        </div>
       </div>
 
       <!-- ══════════════════════════════════════════════
@@ -284,20 +308,6 @@
               <span class="stat-value">{{ stats().totalUsers.toLocaleString() }}</span>
               <span class="stat-label">{{ lang.t('Total Users', 'إجمالي المستخدمين') }}</span>
             </div>
-            <div class="stat-trend stat-trend-up">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-                <polyline points="17 6 23 6 23 12" />
-              </svg>
-              <span>+12%</span>
-            </div>
           </div>
 
           <div class="stat-card">
@@ -317,20 +327,6 @@
             <div class="stat-body">
               <span class="stat-value">{{ stats().totalStores }}</span>
               <span class="stat-label">{{ lang.t('Active Stores', 'المحلات النشطة') }}</span>
-            </div>
-            <div class="stat-trend stat-trend-up">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-                <polyline points="17 6 23 6 23 12" />
-              </svg>
-              <span>+5%</span>
             </div>
           </div>
 
@@ -376,20 +372,6 @@
               <span class="stat-value">{{ stats().totalProducts.toLocaleString() }}</span>
               <span class="stat-label">{{ lang.t('Total Products', 'إجمالي المنتجات') }}</span>
             </div>
-            <div class="stat-trend stat-trend-up">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-                <polyline points="17 6 23 6 23 12" />
-              </svg>
-              <span>+24%</span>
-            </div>
           </div>
 
           <div class="stat-card">
@@ -413,20 +395,6 @@
               <span class="stat-value">{{ stats().totalOrders.toLocaleString() }}</span>
               <span class="stat-label">{{ lang.t('Total Orders', 'إجمالي الطلبات') }}</span>
             </div>
-            <div class="stat-trend stat-trend-up">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-                <polyline points="17 6 23 6 23 12" />
-              </svg>
-              <span>+18%</span>
-            </div>
           </div>
 
           <div class="stat-card stat-card-revenue">
@@ -449,20 +417,27 @@
               }}</span>
               <span class="stat-label">{{ lang.t('Total Revenue', 'إجمالي الإيرادات') }}</span>
             </div>
-            <div class="stat-trend stat-trend-up">
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon stat-icon-gold">
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2.5"
+                stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
               >
-                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-                <polyline points="17 6 23 6 23 12" />
+                <path d="M3 11v3a2 2 0 0 0 2 2h2l4 5v-5l8-3V6L7 9H5a2 2 0 0 0-2 2z" />
+                <path d="M21 9v1" />
               </svg>
-              <span>+31%</span>
             </div>
+            <div class="stat-body">
+              <span class="stat-value">{{ pendingCampaignsCount() }}</span>
+              <span class="stat-label">{{ lang.t('Campaign Reviews', 'مراجعات الحملات') }}</span>
+            </div>
+            <button class="stat-action" (click)="navigateTo('campaigns')">{{ lang.t('Review →', 'مراجعة →') }}</button>
           </div>
         </div>
 
@@ -564,7 +539,10 @@
                     <div class="store-cell">
                       <div class="store-avatar">{{ s.name.charAt(0) }}</div>
                       <div>
-                        <div class="fw-600">{{ s.name }}</div>
+                        <div class="fw-600">
+                          {{ s.name }}
+                          <span class="tier-pill" *ngIf="s.tier === 'Pro'">★ {{ lang.t('Pro', 'برو') }}</span>
+                        </div>
                         <div class="text-soft text-xs" *ngIf="s.description">
                           {{ s.description }}
                         </div>
@@ -589,6 +567,13 @@
                       >
                         {{ lang.t('Approve', 'اعتماد') }}
                       </button>
+                      <!-- PUT /api/stores/{id}/tier -->
+                      <button class="btn-tier" *ngIf="s.tier !== 'Pro'" (click)="setStoreTier(s.id, 'Pro')">
+                        {{ lang.t('Make Pro', 'ترقية لبرو') }}
+                      </button>
+                      <button class="btn-tier ghost" *ngIf="s.tier === 'Pro'" (click)="setStoreTier(s.id, 'Free')">
+                        {{ lang.t('Make Free', 'إرجاع مجاني') }}
+                      </button>
                       <!-- DELETE /api/stores/{id} -->
                       <button class="btn-delete-sm" (click)="deleteStore(s.id)">{{ lang.t('Delete', 'حذف') }}</button>
                     </div>
@@ -609,6 +594,109 @@
                 <polyline points="9 22 9 12 15 12 15 22" />
               </svg>
               <p>{{ lang.t('No stores found', 'لا توجد محلات') }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════
+           CAMPAIGNS
+      ══════════════════════════════════════════════ -->
+      <div *ngIf="activeSection() === 'campaigns'" class="section-wrap">
+        <div class="campaign-summary">
+          <article class="campaign-chip">
+            <span>{{ lang.t('Pending', 'قيد المراجعة') }}</span>
+            <strong>{{ pendingCampaignsCount() }}</strong>
+          </article>
+          <article class="campaign-chip">
+            <span>{{ lang.t('Budget submitted', 'الميزانية المقدمة') }}</span>
+            <strong>{{ formatCurrency(campaignBudgetTotal()) }}</strong>
+          </article>
+          <article class="campaign-chip">
+            <span>{{ lang.t('Campaign clicks', 'نقرات الحملات') }}</span>
+            <strong>{{ campaignClicksTotal() }}</strong>
+          </article>
+        </div>
+
+        <div class="section-toolbar">
+          <div class="filter-tabs">
+            <button
+              class="filter-tab"
+              *ngFor="let f of campaignFilters"
+              [class.active]="campaignFilter() === f"
+              (click)="setCampaignFilter(f)"
+            >
+              {{ f === 'All' ? lang.t('All', 'الكل') : campaignStatusLabel(f) }}
+              <span class="tab-count" *ngIf="f === 'Pending' && pendingCampaignsCount() > 0">{{
+                pendingCampaignsCount()
+              }}</span>
+            </button>
+          </div>
+          <span class="toolbar-count">{{ filteredCampaigns().length }} {{ lang.t('campaigns', 'حملة') }}</span>
+        </div>
+
+        <div class="card table-card">
+          <div class="table-wrap">
+            <table class="data-table campaign-table">
+              <thead>
+                <tr>
+                  <th>{{ lang.t('Campaign', 'الحملة') }}</th>
+                  <th>{{ lang.t('Store', 'المحل') }}</th>
+                  <th>{{ lang.t('Budget', 'الميزانية') }}</th>
+                  <th>{{ lang.t('Performance', 'الأداء') }}</th>
+                  <th>{{ lang.t('Dates', 'التواريخ') }}</th>
+                  <th>{{ lang.t('Status', 'الحالة') }}</th>
+                  <th>{{ lang.t('Actions', 'إجراءات') }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let c of filteredCampaigns()">
+                  <td>
+                    <div class="campaign-cell">
+                      <img *ngIf="c.productImageUrl" [src]="c.productImageUrl" alt="" loading="lazy" />
+                      <span *ngIf="!c.productImageUrl" class="campaign-avatar">{{ c.storeName.charAt(0) }}</span>
+                      <div>
+                        <div class="fw-600">{{ c.title || c.productTitle || campaignTypeLabel(c.type) }}</div>
+                        <div class="text-soft text-xs">{{ campaignTypeLabel(c.type) }} · {{ c.audience }}</div>
+                        <div class="text-soft text-xs" *ngIf="c.message">{{ c.message }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>{{ c.storeName }}</td>
+                  <td class="fw-600">{{ formatCurrency(c.budget) }}</td>
+                  <td>
+                    <span class="metric-line">{{ c.impressions }} {{ lang.t('views', 'ظهور') }}</span>
+                    <span class="metric-line">{{ c.clicks }} {{ lang.t('clicks', 'نقرات') }}</span>
+                    <span class="metric-line" *ngIf="c.recipientsCount">{{ c.recipientsCount }} {{ lang.t('recipients', 'مستلم') }}</span>
+                  </td>
+                  <td>
+                    <span class="metric-line">{{ formatDate(c.createdAt) }}</span>
+                    <span class="metric-line text-soft" *ngIf="c.endAt">{{ formatDate(c.endAt) }}</span>
+                  </td>
+                  <td>
+                    <span class="badge" [ngClass]="campaignBadge(c.status)">
+                      {{ campaignStatusLabel(c.status) }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="action-btns">
+                      <button class="btn-approve-sm" *ngIf="c.status === 'Pending'" (click)="approveCampaign(c.id)">
+                        {{ lang.t('Approve', 'اعتماد') }}
+                      </button>
+                      <button class="btn-reject-sm" *ngIf="c.status === 'Pending'" (click)="rejectCampaign(c.id)">
+                        {{ lang.t('Reject', 'رفض') }}
+                      </button>
+                      <span class="text-soft text-xs" *ngIf="c.status !== 'Pending'">{{ c.rejectionReason || '—' }}</span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="empty-table" *ngIf="!campaignsLoading() && filteredCampaigns().length === 0">
+              <p>{{ lang.t('No campaigns found', 'لا توجد حملات') }}</p>
+            </div>
+            <div class="empty-table" *ngIf="campaignsLoading()">
+              <p>{{ lang.t('Loading campaigns...', 'جارٍ تحميل الحملات...') }}</p>
             </div>
           </div>
         </div>
@@ -936,6 +1024,60 @@
         <button class="btn-primary" (click)="saveCategory()" [disabled]="!catFormName().trim()">
           {{ editingCategory() ? lang.t('Save Changes', 'حفظ التغييرات') : lang.t('Add Category', 'إضافة فئة') }}
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Dialog -->
+  <div class="modal-overlay" *ngIf="confirmDialog() as dialog" (click)="closeConfirmDialog()">
+    <div
+      class="modal-box modal-box-confirm"
+      [class.modal-box-warning]="dialog.tone === 'warning'"
+      (click)="$event.stopPropagation()"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="dialog.title"
+    >
+      <div class="modal-box-head">
+        <div class="confirm-headline">
+          <span class="confirm-icon" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M12 9v4" />
+              <path d="M12 17h.01" />
+              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+            </svg>
+          </span>
+          <h3>{{ dialog.title }}</h3>
+        </div>
+        <button class="modal-close-btn" (click)="closeConfirmDialog()">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-box-body confirm-body">
+        <p>{{ dialog.message }}</p>
+      </div>
+
+      <div class="modal-box-foot">
+        <button class="btn-ghost" (click)="closeConfirmDialog()">{{ dialog.cancelLabel }}</button>
+        <button class="btn-danger" (click)="confirmPendingAction()">{{ dialog.confirmLabel }}</button>
       </div>
     </div>
   </div>

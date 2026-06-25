@@ -1,7 +1,8 @@
-import { Component, DestroyRef, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Title } from '@angular/platform-browser';
 import { AuthService } from '../../../core/services/auth.service';
 import { ThemeService } from '../../../core/services/theme.service';
 import { LanguageService } from '../../../core/services/language.service';
@@ -12,6 +13,8 @@ import { OrderService } from '../../../core/services/order.service';
 import { UserService } from '../../../core/services/user.service';
 import { EngagementService } from '../../../core/services/engagement.service';
 import { AuditLogDTO } from '../../../core/models/engagement.models';
+import { MonetizationService } from '../../../core/services/monetization.service';
+import { PromotionDTO, PromotionStatus } from '../../../core/models/monetization.models';
 
 // DTOs - matching backend exactly
 
@@ -45,6 +48,7 @@ export interface StoreDto {
   latitude?: number;
   longitude?: number;
   isApproved: boolean; // maps to IsApproved
+  tier?: 'Free' | 'Pro'; // StoreDTO.Tier — commercial plan
   ownerName?: string; // StoreDetailsDTO.OwnerName
   productCount: number; // StoreDetailsDTO.ProductCount
 }
@@ -80,7 +84,16 @@ export interface DashboardStatsDto {
   totalRevenue: number;
 }
 
-type Section = 'overview' | 'stores' | 'categories' | 'orders' | 'users' | 'audit';
+type Section = 'overview' | 'stores' | 'campaigns' | 'categories' | 'orders' | 'users' | 'audit';
+
+interface ConfirmDialog {
+  title: string;
+  message: string;
+  confirmLabel: string;
+  cancelLabel: string;
+  tone: 'danger' | 'warning';
+  action: () => void;
+}
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -96,9 +109,11 @@ export class AdminDashboardComponent implements OnInit {
   private orderService = inject(OrderService);
   private userService = inject(UserService);
   private engagement = inject(EngagementService);
+  private monetization = inject(MonetizationService);
   private auth = inject(AuthService);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
+  private title = inject(Title);
   // Public so the topbar can drive the theme/language toggles directly.
   theme = inject(ThemeService);
   lang = inject(LanguageService);
@@ -116,7 +131,8 @@ export class AdminDashboardComponent implements OnInit {
 
   // Real-data load state for the wired sections (stores / categories).
   loading = signal(true);
-  error = signal('');
+  errors = signal<string[]>([]);
+  confirmDialog = signal<ConfirmDialog | null>(null);
 
   // Navigation
   activeSection = signal<Section>('overview');
@@ -126,8 +142,12 @@ export class AdminDashboardComponent implements OnInit {
   // Search & Filters
   searchQuery = signal('');
   storeFilter = signal<'All' | 'Pending' | 'Approved'>('Pending');
+  campaignFilter = signal<'All' | PromotionStatus>('Pending');
   orderFilter = signal<'All' | OrderDto['status']>('All');
   userRoleFilter = signal<'All' | UserDto['role']>('All');
+  private documentTitleEffect = effect(() => {
+    this.title.setTitle(`${this.sectionTitle()} | Dokkana Admin`);
+  });
 
   // Category Modal
   showCategoryModal = signal(false);
@@ -156,6 +176,8 @@ export class AdminDashboardComponent implements OnInit {
 
   users = signal<UserDto[]>([]);
   auditLogs = signal<AuditLogDTO[]>([]);
+  campaigns = signal<PromotionDTO[]>([]);
+  campaignsLoading = signal(false);
 
   // Computed
   filteredStores = computed(() => {
@@ -193,7 +215,25 @@ export class AdminDashboardComponent implements OnInit {
     );
   });
 
+  filteredCampaigns = computed(() => {
+    const q = this.searchQuery().toLowerCase();
+    const f = this.campaignFilter();
+    return this.campaigns().filter((c) => {
+      const matchesFilter = f === 'All' || c.status === f;
+      const matchesQuery =
+        !q ||
+        c.storeName.toLowerCase().includes(q) ||
+        (c.productTitle ?? '').toLowerCase().includes(q) ||
+        (c.title ?? '').toLowerCase().includes(q) ||
+        c.type.toLowerCase().includes(q);
+      return matchesFilter && matchesQuery;
+    });
+  });
+
   pendingCount = computed(() => this.stores().filter((s) => !s.isApproved).length);
+  pendingCampaignsCount = computed(() => this.campaigns().filter((c) => c.status === 'Pending').length);
+  campaignBudgetTotal = computed(() => this.campaigns().reduce((sum, c) => sum + c.budget, 0));
+  campaignClicksTotal = computed(() => this.campaigns().reduce((sum, c) => sum + c.clicks, 0));
   recentOrders = computed(() => this.orders().slice(0, 5));
   overviewPendingStores = computed(() =>
     this.stores()
@@ -205,6 +245,7 @@ export class AdminDashboardComponent implements OnInit {
     return [
       { id: 'overview', label: this.L('Overview', 'نظرة عامة'), icon: 'grid' },
       { id: 'stores', label: this.L('Stores', 'المحلات'), icon: 'store' },
+      { id: 'campaigns', label: this.L('Campaigns', 'الحملات'), icon: 'megaphone' },
       { id: 'categories', label: this.L('Categories', 'الفئات'), icon: 'tag' },
       { id: 'orders', label: this.L('Orders', 'الطلبات'), icon: 'box' },
       { id: 'users', label: this.L('Users', 'المستخدمون'), icon: 'users' },
@@ -214,6 +255,7 @@ export class AdminDashboardComponent implements OnInit {
 
   orderStatuses: OrderDto['status'][] = ['Reserved', 'Completed', 'Cancelled'];
   readonly storeFilters: ('All' | 'Pending' | 'Approved')[] = ['All', 'Pending', 'Approved'];
+  readonly campaignFilters: ('All' | PromotionStatus)[] = ['All', 'Pending', 'Approved', 'Active', 'Rejected', 'Ended'];
   readonly orderFilters: ('All' | OrderStatus)[] = ['All', 'Reserved', 'Completed', 'Cancelled'];
   readonly userRoleFilters: ('All' | UserDto['role'])[] = ['All', 'Admin', 'StoreOwner', 'Shopper'];
 
@@ -224,6 +266,26 @@ export class AdminDashboardComponent implements OnInit {
       Completed: this.L('Completed', 'مكتمل'),
       Cancelled: this.L('Cancelled', 'ملغي'),
     }[s] ?? s;
+  }
+
+  campaignStatusLabel(s: string): string {
+    const labels: Record<string, string> = {
+      Pending: this.L('Pending', 'قيد المراجعة'),
+      Approved: this.L('Approved', 'مُعتمدة'),
+      Active: this.L('Active', 'نشطة'),
+      Rejected: this.L('Rejected', 'مرفوضة'),
+      Ended: this.L('Ended', 'منتهية'),
+    };
+    return labels[s] ?? s;
+  }
+
+  campaignTypeLabel(t: string): string {
+    const labels: Record<string, string> = {
+      FeaturedProduct: this.L('Featured product', 'منتج مميز'),
+      SponsoredNotification: this.L('Sponsored notification', 'إشعار ممول'),
+      FeaturedStore: this.L('Featured store', 'محل مميز'),
+    };
+    return labels[t] ?? t;
   }
 
   storeFilterLabel(f: 'All' | 'Pending' | 'Approved'): string {
@@ -270,12 +332,29 @@ export class AdminDashboardComponent implements OnInit {
     const map: Record<Section, string> = {
       overview: this.L('Dashboard Overview', 'نظرة عامة على لوحة التحكم'),
       stores: this.L('Store Management', 'إدارة المحلات'),
+      campaigns: this.L('Campaign Approvals', 'مراجعة الحملات'),
       categories: this.L('Categories', 'الفئات'),
       orders: this.L('Orders', 'الطلبات'),
       users: this.L('Users', 'المستخدمون'),
       audit: this.L('Audit Log', 'سجل التدقيق'),
     };
     return map[this.activeSection()];
+  }
+
+  dismissError(index: number): void {
+    this.errors.update((messages) => messages.filter((_, i) => i !== index));
+  }
+
+  closeConfirmDialog(): void {
+    this.confirmDialog.set(null);
+  }
+
+  confirmPendingAction(): void {
+    const dialog = this.confirmDialog();
+    if (!dialog) return;
+
+    this.confirmDialog.set(null);
+    dialog.action();
   }
 
   // Store Actions
@@ -286,25 +365,79 @@ export class AdminDashboardComponent implements OnInit {
         this.stores.update((l) => l.map((s) => (s.id === id ? { ...s, isApproved: true } : s)));
         this.recomputeStoreStats();
       },
-      error: () => this.error.set('Could not approve the store. Please try again.'),
+      error: () => this.reportError('Could not approve the store. Please try again.'),
     });
   }
 
   /** DELETE /api/stores/{id} */
   deleteStore(id: number): void {
     const store = this.stores().find((s) => s.id === id);
-    if (!confirm(`Delete "${store?.name}"? This cannot be undone.`)) return;
+    this.askConfirm({
+      title: this.L('Delete store?', 'حذف المحل؟'),
+      message: this.L(
+        `Delete "${store?.name ?? 'this store'}"? This cannot be undone.`,
+        `حذف "${store?.name ?? 'هذا المحل'}"؟ لا يمكن التراجع عن هذا الإجراء.`,
+      ),
+      confirmLabel: this.L('Delete store', 'حذف المحل'),
+      tone: 'danger',
+      action: () => this.deleteStoreNow(id),
+    });
+  }
+
+  private deleteStoreNow(id: number): void {
     this.storeService.delete(id).subscribe({
       next: () => {
         this.stores.update((l) => l.filter((s) => s.id !== id));
         this.recomputeStoreStats();
       },
-      error: () => this.error.set('Could not delete the store. Please try again.'),
+      error: () => this.reportError('Could not delete the store. Please try again.'),
     });
   }
 
   setStoreFilter(f: string): void {
     this.storeFilter.set(f as 'All' | 'Pending' | 'Approved');
+  }
+
+  /** PUT /api/stores/{id}/tier — admin override of a store's plan. */
+  setStoreTier(id: number, tier: 'Free' | 'Pro'): void {
+    this.storeService.setTier(id, tier).subscribe({
+      next: () => {
+        this.stores.update((l) => l.map((s) => (s.id === id ? { ...s, tier } : s)));
+      },
+      error: () => this.reportError('Could not change the store plan. Please try again.'),
+    });
+  }
+
+  setCampaignFilter(f: string): void {
+    this.campaignFilter.set(f as 'All' | PromotionStatus);
+  }
+
+  approveCampaign(id: number): void {
+    this.monetization.approveCampaign(id).subscribe({
+      next: updated => this.campaigns.update(items => items.map(c => c.id === id ? updated : c)),
+      error: err => this.reportError(err?.error?.message || 'Could not approve the campaign. Please try again.'),
+    });
+  }
+
+  rejectCampaign(id: number): void {
+    const campaign = this.campaigns().find((c) => c.id === id);
+    this.askConfirm({
+      title: this.L('Reject campaign?', 'رفض الحملة؟'),
+      message: this.L(
+        `Reject "${campaign?.title || campaign?.productTitle || 'this campaign'}"? The merchant will see it as rejected.`,
+        `رفض "${campaign?.title || campaign?.productTitle || 'هذه الحملة'}"؟ سيظهر للتاجر أنها مرفوضة.`,
+      ),
+      confirmLabel: this.L('Reject campaign', 'رفض الحملة'),
+      tone: 'warning',
+      action: () => this.rejectCampaignNow(id),
+    });
+  }
+
+  private rejectCampaignNow(id: number): void {
+    this.monetization.rejectCampaign(id, this.L('Rejected by admin review.', 'مرفوضة بعد مراجعة الإدارة.')).subscribe({
+      next: () => this.loadCampaigns(),
+      error: err => this.reportError(err?.error?.message || 'Could not reject the campaign. Please try again.'),
+    });
   }
 
   // Category Actions
@@ -344,7 +477,7 @@ export class AdminDashboardComponent implements OnInit {
           this.categories.update((l) => l.map((c) => (c.id === editing.id ? { ...c, ...payload } : c)));
           this.closeCategoryModal();
         },
-        error: () => this.error.set('Could not update the category.'),
+        error: () => this.reportError('Could not update the category.'),
       });
     } else {
       this.categoryService.create(payload).subscribe({
@@ -360,17 +493,30 @@ export class AdminDashboardComponent implements OnInit {
           ]);
           this.closeCategoryModal();
         },
-        error: () => this.error.set('Could not create the category.'),
+        error: () => this.reportError('Could not create the category.'),
       });
     }
   }
 
   /** DELETE /api/categories/{id} */
   deleteCategory(id: number): void {
-    if (!confirm('Delete this category?')) return;
+    const category = this.categories().find((c) => c.id === id);
+    this.askConfirm({
+      title: this.L('Delete category?', 'حذف الفئة؟'),
+      message: this.L(
+        `Delete "${category?.name ?? 'this category'}"? Products may still reference it.`,
+        `حذف "${category?.name ?? 'هذه الفئة'}"؟ قد تظل بعض المنتجات مرتبطة بها.`,
+      ),
+      confirmLabel: this.L('Delete category', 'حذف الفئة'),
+      tone: 'warning',
+      action: () => this.deleteCategoryNow(id),
+    });
+  }
+
+  private deleteCategoryNow(id: number): void {
     this.categoryService.delete(id).subscribe({
       next: () => this.categories.update((l) => l.filter((c) => c.id !== id)),
-      error: () => this.error.set('Could not delete the category.'),
+      error: () => this.reportError('Could not delete the category.'),
     });
   }
 
@@ -386,7 +532,7 @@ export class AdminDashboardComponent implements OnInit {
     this.orderService.updateStatus(id, status).subscribe({
       next: () => {},
       error: () => {
-        this.error.set('Could not update the order status.');
+        this.reportError('Could not update the order status.');
         // Roll back the optimistic change on failure.
         if (prev) this.orders.update((l) => l.map((o) => (o.id === id ? { ...o, status: prev } : o)));
       },
@@ -408,7 +554,7 @@ export class AdminDashboardComponent implements OnInit {
         this.users.update((l) =>
           l.map((u) => (u.id === id ? { ...u, status: disabled ? 'Disabled' : 'Active' } : u)),
         ),
-      error: () => this.error.set('Could not change the user status.'),
+      error: () => this.reportError('Could not change the user status.'),
     });
   }
 
@@ -449,6 +595,17 @@ export class AdminDashboardComponent implements OnInit {
     return { Admin: 'badge-admin', StoreOwner: 'badge-store', Shopper: 'badge-shopper' }[r] ?? '';
   }
 
+  campaignBadge(status: string): string {
+    const classes: Record<string, string> = {
+      Pending: 'badge-pending',
+      Approved: 'badge-processing',
+      Active: 'badge-delivered',
+      Rejected: 'badge-cancelled',
+      Ended: 'badge-shopper',
+    };
+    return classes[status] ?? 'badge-shopper';
+  }
+
   ngOnInit(): void {
     if (window.innerWidth < 1024) this.sidebarOpen.set(false);
     // Keep the sidebar open on desktop widths. Clean up on destroy so navigating
@@ -464,7 +621,7 @@ export class AdminDashboardComponent implements OnInit {
   // Backend data loading
   private loadData(): void {
     this.loading.set(true);
-    this.error.set('');
+    this.errors.set([]);
 
     this.storeService.getAll().subscribe({
       next: (stores) => {
@@ -478,14 +635,15 @@ export class AdminDashboardComponent implements OnInit {
             latitude: s.latitude ?? undefined,
             longitude: s.longitude ?? undefined,
             isApproved: s.isApproved,
-            productCount: 0,
+            tier: s.tier ?? 'Free',
+            productCount: s.productCount ?? 0,
           })),
         );
         this.recomputeStoreStats();
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('Could not load stores from the server.');
+        this.reportError('Could not load stores from the server.');
         this.loading.set(false);
       },
     });
@@ -500,7 +658,7 @@ export class AdminDashboardComponent implements OnInit {
             imageUrl: c.imageUrl ?? undefined,
           })),
         ),
-      error: () => this.error.set('Could not load categories from the server.'),
+      error: () => this.reportError('Could not load categories from the server.'),
     });
 
     // Total product count comes from the paged products endpoint's totalCount.
@@ -527,10 +685,13 @@ export class AdminDashboardComponent implements OnInit {
         this.stats.update((s) => ({
           ...s,
           totalOrders: orders.length,
-          totalRevenue: orders.reduce((sum, o) => sum + o.totalAmount, 0),
+          // Realized revenue only: completed orders, not open or cancelled ones.
+          totalRevenue: orders
+            .filter((o) => o.status === 'Completed')
+            .reduce((sum, o) => sum + o.totalAmount, 0),
         }));
       },
-      error: () => this.error.set('Could not load orders from the server.'),
+      error: () => this.reportError('Could not load orders from the server.'),
     });
 
     // Users (admin).
@@ -542,18 +703,34 @@ export class AdminDashboardComponent implements OnInit {
             name: u.name,
             email: u.email,
             role: u.role,
-            joinDate: '',
+            joinDate: u.createdAt,
             status: u.isDisabled ? 'Disabled' : 'Active',
           })),
         );
         this.stats.update((s) => ({ ...s, totalUsers: users.length }));
       },
-      error: () => this.error.set('Could not load users from the server.'),
+      error: () => this.reportError('Could not load users from the server.'),
     });
 
     this.engagement.getAuditLogs(100).subscribe({
       next: logs => this.auditLogs.set(logs),
-      error: () => this.error.set('Could not load audit logs from the server.'),
+      error: () => this.reportError('Could not load audit logs from the server.'),
+    });
+
+    this.loadCampaigns();
+  }
+
+  private loadCampaigns(): void {
+    this.campaignsLoading.set(true);
+    this.monetization.getAdminCampaigns().subscribe({
+      next: campaigns => {
+        this.campaigns.set(campaigns);
+        this.campaignsLoading.set(false);
+      },
+      error: () => {
+        this.reportError('Could not load campaigns from the server.');
+        this.campaignsLoading.set(false);
+      },
     });
   }
 
@@ -564,5 +741,18 @@ export class AdminDashboardComponent implements OnInit {
       totalStores: this.stores().length,
       pendingApprovals: this.stores().filter((st) => !st.isApproved).length,
     }));
+  }
+
+  private askConfirm(dialog: Omit<ConfirmDialog, 'cancelLabel'> & { cancelLabel?: string }): void {
+    this.confirmDialog.set({
+      ...dialog,
+      cancelLabel: dialog.cancelLabel ?? this.L('Cancel', 'إلغاء'),
+    });
+  }
+
+  private reportError(message: string): void {
+    this.errors.update((messages) =>
+      messages.includes(message) ? messages : [...messages, message],
+    );
   }
 }

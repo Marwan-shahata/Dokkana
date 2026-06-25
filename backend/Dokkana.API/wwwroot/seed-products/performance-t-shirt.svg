@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-label="Performance t-shirt">
+  <rect width="640" height="640" rx="48" fill="#ece4d8"/>
+  <path d="M212 160l78-48 30 38 30-38 78 48 54 98-64 34v198H222V292l-64-34 54-98z" fill="#777a7d"/>
+  <path d="M290 112c18 30 42 30 60 0" fill="none" stroke="#b5b8ba" stroke-width="16" stroke-linecap="round"/>
+  <path d="M238 320h164" stroke="#989da0" stroke-width="14" stroke-linecap="round"/>
+</svg>
