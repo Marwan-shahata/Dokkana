@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-label="Wool overcoat">
+  <rect width="640" height="640" rx="48" fill="#ebe3d7"/>
+  <path d="M220 140l72-32 28 42 28-42 72 32 54 120-58 30v246H224V290l-58-30 54-120z" fill="#424141"/>
+  <path d="M320 154v382M278 238h84" stroke="#676260" stroke-width="12" stroke-linecap="round"/>
+  <path d="M292 108l28 42-48 88-24-104 44-26zm56 0l-28 42 48 88 24-104-44-26z" fill="#303030"/>
+</svg>

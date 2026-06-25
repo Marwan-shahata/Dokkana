@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-label="Red wedding dress">
+  <rect width="640" height="640" rx="48" fill="#f4ebe6"/>
+  <path d="M282 84h76l-20 120 126 322H176l126-322-20-120z" fill="#b51f3a"/>
+  <path d="M282 84c18 52 58 52 76 0l18 112H264l18-112z" fill="#d94e62"/>
+  <path d="M216 526c46-42 162-42 208 0" fill="none" stroke="#7f1b30" stroke-width="24" stroke-linecap="round"/>
+</svg>

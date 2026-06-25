@@ -1,0 +1,930 @@
+<section class="merchant-shell" [class.rtl]="lang.isAr()" [attr.dir]="lang.isAr() ? 'rtl' : 'ltr'">
+  <div class="studio-aura" aria-hidden="true">
+    <span class="aura aura-1"></span>
+    <span class="aura aura-2"></span>
+    <span class="aura aura-3"></span>
+  </div>
+
+  <div class="toast" *ngIf="notice()" role="status" aria-live="polite">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+    <span>{{ notice() }}</span>
+  </div>
+
+  <div class="portal-frame">
+    <aside class="studio-rail" [attr.aria-label]="L('Merchant navigation', 'تنقل بوابة التاجر')">
+      <div class="rail-brand">
+        <div class="store-mark" [class.empty]="!store()">
+          {{ initials(store()?.name || currentUser()?.storeName || 'Dokkana') }}
+        </div>
+        <div class="rail-brand-text">
+          <p class="eyebrow">{{ L('Merchant studio', 'استوديو التاجر') }}</p>
+          <h2>{{ store()?.name || L('Set up your store', 'جهّز محلك') }}</h2>
+          <p class="rail-copy">
+            {{ L('Products, pickup reservations, profile details, and catalog tools in one calm desk.', 'منتجات وحجوزات الاستلام وبيانات المحل وأدوات الكتالوج في مساحة واحدة هادئة.') }}
+          </p>
+        </div>
+      </div>
+
+      <section class="rail-status" [attr.aria-label]="L('Store status', 'حالة المحل')">
+        <div class="status-line" *ngIf="store() as currentStore; else setupStatus">
+          <span class="status-dot" [class.live]="currentStore.isApproved"></span>
+          <div>
+            <span>{{ currentStore.isApproved ? L('Approved store', 'محل مقبول') : L('Awaiting review', 'بانتظار المراجعة') }}</span>
+            <strong>{{ currentStore.isApproved ? L('Visible to shoppers', 'ظاهر للمتسوقين') : L('Hidden until admin review', 'مخفي حتى مراجعة الإدارة') }}</strong>
+          </div>
+        </div>
+
+        <ng-template #setupStatus>
+          <div class="status-line setup">
+            <span class="status-dot"></span>
+            <div>
+              <span>{{ L('Setup needed', 'الإعداد مطلوب') }}</span>
+              <strong>{{ L('Create your public profile first', 'أنشئ ملف المحل العام أولاً') }}</strong>
+            </div>
+          </div>
+        </ng-template>
+
+        <div class="checklist">
+          <div [class.done]="!!store()">
+            <span class="check-tick" aria-hidden="true"></span>
+            <span class="check-label">{{ L('Profile', 'الملف') }}</span>
+            <strong>{{ store() ? L('Ready', 'جاهز') : L('Missing', 'غير موجود') }}</strong>
+          </div>
+          <div [class.done]="!!store()?.isApproved">
+            <span class="check-tick" aria-hidden="true"></span>
+            <span class="check-label">{{ L('Approval', 'الموافقة') }}</span>
+            <strong>{{ store()?.isApproved ? L('Done', 'تم') : L('Pending', 'معلق') }}</strong>
+          </div>
+          <div [class.done]="productCount() > 0">
+            <span class="check-tick" aria-hidden="true"></span>
+            <span class="check-label">{{ L('Shelf', 'الرف') }}</span>
+            <strong>{{ productCount() > 0 ? productCount() : L('Empty', 'فارغ') }}</strong>
+          </div>
+        </div>
+      </section>
+
+      <nav class="studio-tabs" [attr.aria-label]="L('Merchant sections', 'أقسام التاجر')">
+        <button
+          *ngFor="let tab of tabs; let i = index"
+          type="button"
+          [class.active]="activeTab() === tab.id"
+          [style.--d]="(i * 55) + 'ms'"
+          (click)="selectTab(tab.id)">
+          <span class="tab-ic" [ngSwitch]="tab.icon" aria-hidden="true">
+            <svg *ngSwitchCase="'box'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" />
+            </svg>
+            <svg *ngSwitchCase="'bag'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" />
+            </svg>
+            <svg *ngSwitchCase="'store'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+            <svg *ngSwitchCase="'file'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" />
+            </svg>
+            <svg *ngSwitchCase="'spark'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z" /><path d="M19 14l.7 1.9 1.9.7-1.9.7-.7 1.9-.7-1.9-1.9-.7 1.9-.7z" />
+            </svg>
+            <svg *ngSwitchCase="'card'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="5" width="20" height="14" rx="2.5" /><line x1="2" y1="10" x2="22" y2="10" />
+            </svg>
+            <svg *ngSwitchCase="'megaphone'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m3 11 18-5v12L3 13v-2z" /><path d="M7 14v5a2 2 0 0 0 2 2h1" />
+            </svg>
+          </span>
+          <span class="tab-label">{{ tabLabel(tab) }}</span>
+          <span class="tab-badge" *ngIf="tab.id === 'orders' && reservedOrdersCount() > 0">{{ reservedOrdersCount() }}</span>
+          <span class="tab-chevron" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+          </span>
+        </button>
+      </nav>
+    </aside>
+
+    <div class="portal-main">
+      <header class="studio-command">
+        <div class="command-glow" aria-hidden="true"></div>
+        <div class="command-body">
+          <p class="eyebrow eyebrow-chip">
+            <span class="ping" aria-hidden="true"></span>
+            {{ L('Merchant portal', 'بوابة التاجر') }}
+          </p>
+          <h1>{{ L('Run your shop from one desk', 'أدر محلك من مساحة واحدة') }}</h1>
+          <p class="command-copy">
+            {{ L('Keep stock clear, collect reservations, and prepare your catalog for smarter discovery.', 'رتّب المخزون واستلم الحجوزات وجهّز الكتالوج لاكتشاف أذكى.') }}
+          </p>
+        </div>
+        <div class="command-actions">
+          <button class="primary compact" type="button" (click)="selectTab('inventory')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+            {{ L('Add product', 'إضافة منتج') }}
+          </button>
+          <button class="ghost compact" type="button" (click)="selectTab('orders')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15 14" /></svg>
+            {{ reservedOrdersCount() }} {{ L('waiting', 'بانتظار') }}
+          </button>
+        </div>
+      </header>
+
+      <section class="metric-rail" [attr.aria-label]="L('Merchant performance summary', 'ملخص أداء التاجر')">
+        <article class="metric-card tone-clay" style="--d:0ms">
+          <span class="metric-ic" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2.5" /><circle cx="12" cy="12" r="2.5" /><path d="M6 12h.01M18 12h.01" /></svg>
+          </span>
+          <div class="metric-text">
+            <span>{{ L('Revenue', 'الإيرادات') }}</span>
+            <strong>{{ (sellerStats()?.revenue ?? 0) | number:'1.0-0' }} <i>{{ L('EGP', 'ج.م') }}</i></strong>
+            <small>{{ L('Average order', 'متوسط الطلب') }} {{ averageOrderValue() | number:'1.0-0' }} {{ L('EGP', 'ج.م') }}</small>
+          </div>
+        </article>
+        <article class="metric-card tone-nile" style="--d:80ms">
+          <span class="metric-ic" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><path d="M3 6h18" /><path d="m9 13 2 2 4-4" /></svg>
+          </span>
+          <div class="metric-text">
+            <span>{{ L('Reservations', 'الحجوزات') }}</span>
+            <strong>{{ reservedOrdersCount() }}</strong>
+            <small>{{ completedOrdersCount() }} {{ L('collected', 'مستلمة') }}</small>
+          </div>
+        </article>
+        <article class="metric-card tone-green" style="--d:160ms">
+          <span class="metric-ic" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>
+          </span>
+          <div class="metric-text">
+            <span>{{ L('Inventory health', 'صحة المخزون') }}</span>
+            <strong>{{ inventoryHealth() }}<i>%</i></strong>
+            <div class="metric-bar" aria-hidden="true"><span [style.width.%]="inventoryHealth()"></span></div>
+            <small>{{ lowStockCount() }} {{ L('low', 'منخفض') }} · {{ outOfStockCount() }} {{ L('out', 'نفد') }}</small>
+          </div>
+        </article>
+        <article class="metric-card tone-amber" style="--d:240ms">
+          <span class="metric-ic" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2" /><polyline points="2 17 12 22 22 17" /><polyline points="2 12 12 17 22 12" /></svg>
+          </span>
+          <div class="metric-text">
+            <span>{{ L('Listed value', 'قيمة المعروض') }}</span>
+            <strong>{{ inventoryValue() | number:'1.0-0' }} <i>{{ L('EGP', 'ج.م') }}</i></strong>
+            <small>{{ productCount() }} {{ L('products', 'منتج') }}</small>
+          </div>
+        </article>
+      </section>
+
+      <p class="page-error" *ngIf="error()" role="alert">{{ error() }}</p>
+
+      <div class="workspace-loading" *ngIf="loading()" role="status" aria-live="polite">
+        <span class="skeleton title"></span>
+        <span class="skeleton"></span>
+        <span class="skeleton short"></span>
+      </div>
+
+      <main class="studio-workspace" *ngIf="!loading()">
+    <section class="tab-panel inventory-panel" *ngIf="activeTab() === 'inventory'">
+      <div class="section-bar">
+        <div>
+          <p class="eyebrow">{{ L('Inventory desk', 'مكتب المخزون') }}</p>
+          <h2>{{ L('Create products and keep the shelf clean', 'أنشئ المنتجات وحافظ على رف واضح') }}</h2>
+        </div>
+
+        <div class="inventory-tools">
+          <label class="search-box">
+            <span class="sr-only">{{ L('Search products', 'بحث المنتجات') }}</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+            <input
+              type="search"
+              name="inventorySearch"
+              [placeholder]="L('Search product, brand, category', 'ابحث بالمنتج أو الماركة أو التصنيف')"
+              [ngModel]="inventorySearch()"
+              (ngModelChange)="inventorySearch.set($event)" />
+          </label>
+          <div class="filter-group" [attr.aria-label]="L('Stock filters', 'مرشحات المخزون')">
+            <button
+              *ngFor="let option of stockFilterOptions"
+              type="button"
+              [class.active]="stockFilter() === option.id"
+              (click)="setStockFilter(option.id)">
+              {{ L(option.en, option.ar) }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="inventory-grid">
+        <form class="product-editor" (ngSubmit)="submitProduct()">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">{{ editingProductId() ? L('Editing product', 'تعديل منتج') : L('New product', 'منتج جديد') }}</p>
+              <h3>{{ productForm.title || L('Product details', 'تفاصيل المنتج') }}</h3>
+            </div>
+            <button class="ghost compact" type="button" *ngIf="editingProductId()" (click)="resetProductForm()">
+              {{ L('Cancel', 'إلغاء') }}
+            </button>
+          </div>
+
+          <div class="product-preview">
+            <span
+              class="preview-media"
+              [style.backgroundImage]="cssUrl(productForm.imageUrl)">
+              <span *ngIf="!productForm.imageUrl">{{ initials(productForm.title || L('New item', 'منتج جديد')) }}</span>
+            </span>
+            <div>
+              <strong>{{ productForm.title || L('Untitled item', 'منتج بلا اسم') }}</strong>
+              <small>{{ productForm.brand || L('Brand not set', 'الماركة غير محددة') }}</small>
+            </div>
+          </div>
+
+          <button class="ghost compact ai-fill-btn" type="button" (click)="generateWithAi()" [disabled]="aiSuggesting()">
+            ✦ {{ aiSuggesting() ? L('Generating...', 'جارٍ التوليد...') : L('Generate with AI', 'املأ تلقائيًا') }}
+          </button>
+
+          <div class="form-grid">
+            <label>
+              <span>{{ L('Title', 'العنوان') }}</span>
+              <input name="title" type="text" [(ngModel)]="productForm.title" required />
+            </label>
+            <label>
+              <span>{{ L('Category', 'التصنيف') }}</span>
+              <select name="categoryId" [(ngModel)]="productForm.categoryId" required>
+                <option [ngValue]="null">{{ L('Select category', 'اختر التصنيف') }}</option>
+                <option *ngFor="let category of categories()" [ngValue]="category.id">
+                  {{ categoryLabel(category.name) }}
+                </option>
+              </select>
+            </label>
+            <label>
+              <span>{{ L('Price', 'السعر') }}</span>
+              <input name="price" type="number" min="1" step="1" [(ngModel)]="productForm.price" required />
+            </label>
+            <label>
+              <span>{{ L('Stock count', 'عدد المخزون') }}</span>
+              <input name="count" type="number" min="0" step="1" [(ngModel)]="productForm.count" required />
+            </label>
+            <label>
+              <span>{{ L('Brand', 'الماركة') }}</span>
+              <input name="brand" type="text" [(ngModel)]="productForm.brand" />
+            </label>
+            <label>
+              <span>{{ L('Color', 'اللون') }}</span>
+              <input name="color" type="text" [(ngModel)]="productForm.color" />
+            </label>
+            <label>
+              <span>{{ L('Size', 'المقاس') }}</span>
+              <input name="size" type="text" [(ngModel)]="productForm.size" />
+            </label>
+            <label>
+              <span>{{ L('Gender', 'النوع') }}</span>
+              <select name="gender" [(ngModel)]="productForm.gender">
+                <option value="">{{ L('Not specified', 'غير محدد') }}</option>
+                <option value="Women">{{ L('Women', 'نساء') }}</option>
+                <option value="Men">{{ L('Men', 'رجال') }}</option>
+                <option value="Unisex">{{ L('Unisex', 'للجميع') }}</option>
+              </select>
+            </label>
+            <label class="wide">
+              <span>{{ L('Image URL', 'رابط الصورة') }}</span>
+              <input name="imageUrl" type="url" [(ngModel)]="productForm.imageUrl" />
+            </label>
+            <label class="wide upload-inline">
+              <span>{{ L('Upload product image', 'رفع صورة المنتج') }}</span>
+              <input name="productImageFile" type="file" accept="image/*" (change)="uploadProductImage($event)" />
+              <small>{{ uploadingProductImage() ? L('Uploading...', 'جار الرفع...') : L('JPG, PNG, GIF, or WEBP up to 5 MB', 'JPG أو PNG أو GIF أو WEBP حتى 5 ميجابايت') }}</small>
+            </label>
+            <label class="wide">
+              <span>{{ L('Description', 'الوصف') }}</span>
+              <textarea name="description" rows="4" [(ngModel)]="productForm.description"></textarea>
+            </label>
+          </div>
+
+          <button class="primary" type="submit" [disabled]="savingProduct() || !store()">
+            {{ savingProduct() ? L('Saving...', 'جار الحفظ...') : editingProductId() ? L('Save product', 'حفظ المنتج') : L('Add product', 'إضافة المنتج') }}
+          </button>
+          <p class="hint" *ngIf="!store()">{{ L('Create your store profile before adding products.', 'أنشئ ملف المحل قبل إضافة المنتجات.') }}</p>
+        </form>
+
+        <div class="shelf-panel">
+          <div class="list-head">
+            <div>
+              <p class="eyebrow">{{ L('Live shelf', 'الرف الحالي') }}</p>
+              <h3>{{ filteredProducts().length }} / {{ productCount() }} {{ L('products', 'منتج') }}</h3>
+            </div>
+            <button
+              class="ghost compact"
+              type="button"
+              *ngIf="inventorySearch() || stockFilter() !== 'all'"
+              (click)="clearInventoryFilters()">
+              {{ L('Clear filters', 'مسح المرشحات') }}
+            </button>
+          </div>
+
+          <div class="empty-shelf" *ngIf="productsList().length === 0">
+            <div class="empty-visual">{{ initials(store()?.name || 'DK') }}</div>
+            <strong>{{ L('Your shelf is ready for its first product', 'رفك جاهز لأول منتج') }}</strong>
+            <span>{{ L('Add one clear item with price, category, stock, and a photo. After approval, shoppers can reserve it for pickup.', 'أضف منتجاً واضحاً بالسعر والتصنيف والمخزون والصورة. بعد الموافقة يستطيع المتسوقون حجزه للاستلام.') }}</span>
+          </div>
+
+          <div class="empty-shelf small" *ngIf="productsList().length > 0 && filteredProducts().length === 0">
+            <strong>{{ L('No products match this view', 'لا توجد منتجات تطابق العرض') }}</strong>
+            <span>{{ L('Try a different search or stock filter.', 'جرّب بحثاً أو مرشح مخزون مختلفاً.') }}</span>
+          </div>
+
+          <div class="product-list" *ngIf="filteredProducts().length > 0">
+            <article class="product-row" *ngFor="let product of filteredProducts(); trackBy: trackProduct">
+              <div class="product-cell">
+                <span
+                  class="thumb"
+                  [style.backgroundImage]="cssUrl(product.imageUrl)">
+                  <span *ngIf="!product.imageUrl">{{ initials(product.title) }}</span>
+                </span>
+                <div>
+                  <strong>{{ product.title }}</strong>
+                  <small>{{ product.brand || product.storeName }} · {{ categoryLabel(product.categoryName) }}</small>
+                </div>
+              </div>
+
+              <div class="product-meta">
+                <span class="stock-pill" [ngClass]="'stock-' + stockState(product)">
+                  <span class="pill-dot" aria-hidden="true"></span>
+                  {{ stockLabel(product) }} · {{ product.count }}
+                </span>
+                <strong>
+                  <s *ngIf="product.isOnSale && product.originalPrice">{{ product.originalPrice | number:'1.0-0' }}</s>
+                  {{ (product.isOnSale && product.salePrice ? product.salePrice : product.price) | number:'1.0-0' }} {{ L('EGP', 'ج.م') }}
+                </strong>
+                <span class="sale-mini" *ngIf="product.isOnSale">{{ L('Sale', 'تخفيض') }}</span>
+              </div>
+
+              <div class="row-actions">
+                <button type="button" class="ghost compact" (click)="promoteProduct(product)">{{ L('Promote', 'روّج') }}</button>
+                <button type="button" class="ghost compact" (click)="editProduct(product)">{{ L('Edit', 'تعديل') }}</button>
+                <button
+                  type="button"
+                  class="danger compact"
+                  [disabled]="deletingProductId() === product.id"
+                  (click)="deleteProduct(product)">
+                  {{ deletingProductId() === product.id ? L('Deleting...', 'جار الحذف...') : L('Delete', 'حذف') }}
+                </button>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tab-panel orders-panel" *ngIf="activeTab() === 'orders'">
+      <div class="section-bar">
+        <div>
+          <p class="eyebrow">{{ L('Reservation queue', 'طابور الحجوزات') }}</p>
+          <h2>{{ L('Pickup decisions for today', 'قرارات الاستلام اليوم') }}</h2>
+        </div>
+        <div class="queue-summary">
+          <span class="queue-chip"><b>{{ reservedOrdersCount() }}</b> {{ L('waiting', 'بانتظار') }}</span>
+          <span class="queue-chip"><b>{{ cancelledOrdersCount() }}</b> {{ L('cancelled', 'ملغية') }}</span>
+        </div>
+      </div>
+
+      <p class="inline-loading" *ngIf="ordersLoading()">{{ L('Loading orders...', 'جار تحميل الطلبات...') }}</p>
+
+      <div class="orders-layout">
+        <div class="order-stream">
+          <div class="empty-shelf small" *ngIf="!ordersLoading() && orders().length === 0">
+            <strong>{{ L('No orders yet', 'لا توجد طلبات بعد') }}</strong>
+            <span>{{ L('Reservations that include your products will appear here.', 'ستظهر هنا الحجوزات التي تتضمن منتجاتك.') }}</span>
+          </div>
+
+          <article class="order-card" *ngFor="let order of orders(); trackBy: trackOrder">
+            <header class="order-card-head">
+              <div>
+                <span class="pickup-code">{{ order.pickupCode }}</span>
+                <strong>{{ order.customerName }}</strong>
+                <small>{{ order.createdAt | date:'medium' }}</small>
+              </div>
+              <span class="order-status" [ngClass]="orderStatusClass(order.status)">{{ orderStatusLabel(order.status) }}</span>
+            </header>
+
+            <ul class="order-lines">
+              <li *ngFor="let item of order.items">
+                <span class="line-title">{{ item.productTitle }}</span>
+                <span class="qty">x{{ item.quantity }}</span>
+                <span class="line-total">{{ item.lineTotal | number:'1.0-0' }} {{ L('EGP', 'ج.م') }}</span>
+              </li>
+            </ul>
+
+            <footer class="order-card-foot">
+              <strong>{{ L('Store total', 'إجمالي المحل') }}: {{ order.storeTotal | number:'1.0-0' }} {{ L('EGP', 'ج.م') }}</strong>
+              <div class="order-actions" *ngIf="order.status === 'Reserved'">
+                <button
+                  type="button"
+                  class="primary compact"
+                  [disabled]="updatingOrderId() === order.id"
+                  (click)="updateOrderStatus(order, 'Completed')">
+                  {{ updatingOrderId() === order.id ? L('Saving...', 'جار الحفظ...') : L('Collected', 'تم الاستلام') }}
+                </button>
+                <button
+                  type="button"
+                  class="danger compact"
+                  [disabled]="updatingOrderId() === order.id"
+                  (click)="updateOrderStatus(order, 'Cancelled')">
+                  {{ L('Cancel', 'إلغاء') }}
+                </button>
+              </div>
+            </footer>
+          </article>
+        </div>
+
+        <aside class="guidance-panel">
+          <p class="eyebrow">{{ L('Pickup script', 'نص الاستلام') }}</p>
+          <h3>{{ L('Verify before completing', 'تحقق قبل الإتمام') }}</h3>
+          <ul>
+            <li>{{ L('Match the pickup code with the shopper.', 'طابق كود الاستلام مع المتسوق.') }}</li>
+            <li>{{ L('Check product count before marking collected.', 'راجع عدد المنتجات قبل تعليم الطلب كمستلم.') }}</li>
+            <li>{{ L('Cancel only when the reservation cannot be fulfilled.', 'ألغ فقط عندما لا يمكن تنفيذ الحجز.') }}</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <section class="tab-panel store-panel" *ngIf="activeTab() === 'store'">
+      <form class="store-editor" (ngSubmit)="createOrUpdateStore()">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">{{ L('Public profile', 'الملف العام') }}</p>
+            <h2>{{ store() ? L('Edit store details', 'تعديل بيانات المحل') : L('Create store profile', 'إنشاء ملف المحل') }}</h2>
+          </div>
+          <span class="approval-chip" *ngIf="store() as currentStore">
+            {{ currentStore.isApproved ? L('Approved', 'مقبول') : L('Pending', 'قيد المراجعة') }}
+          </span>
+        </div>
+
+        <div class="form-grid store-grid">
+          <label>
+            <span>{{ L('Store name', 'اسم المحل') }}</span>
+            <input name="storeName" type="text" [(ngModel)]="storeForm.name" required />
+          </label>
+          <label>
+            <span>{{ L('Logo URL', 'رابط الشعار') }}</span>
+            <input name="logoUrl" type="url" [(ngModel)]="storeForm.logoUrl" />
+          </label>
+          <label>
+            <span>{{ L('Upload logo', 'رفع الشعار') }}</span>
+            <input name="storeLogoFile" type="file" accept="image/*" (change)="uploadStoreLogo($event)" />
+            <small>{{ uploadingStoreLogo() ? L('Uploading...', 'جار الرفع...') : L('Optional image file', 'ملف صورة اختياري') }}</small>
+          </label>
+          <label class="wide">
+            <span>{{ L('Address', 'العنوان') }}</span>
+            <input name="address" type="text" [(ngModel)]="storeForm.address" />
+          </label>
+          <label>
+            <span>{{ L('WhatsApp phone', 'رقم واتساب') }}</span>
+            <input name="whatsAppPhone" type="tel" [(ngModel)]="storeForm.whatsAppPhone" placeholder="+201001234567" />
+          </label>
+          <label>
+            <span>{{ L('Latitude', 'خط العرض') }}</span>
+            <input name="latitude" type="number" step="0.000001" [(ngModel)]="storeForm.latitude" />
+          </label>
+          <label>
+            <span>{{ L('Longitude', 'خط الطول') }}</span>
+            <input name="longitude" type="number" step="0.000001" [(ngModel)]="storeForm.longitude" />
+          </label>
+          <div class="wide store-map-field">
+            <span class="field-label">{{ L('Pin location on the map', 'حدّد الموقع على الخريطة') }}</span>
+            <app-store-map
+              [editable]="true"
+              [lat]="storeForm.latitude"
+              [lng]="storeForm.longitude"
+              [name]="storeForm.name"
+              [address]="storeForm.address"
+              (locationChange)="onStoreLocationPicked($event)"></app-store-map>
+          </div>
+          <label class="wide">
+            <span>{{ L('Description', 'الوصف') }}</span>
+            <textarea name="storeDescription" rows="5" [(ngModel)]="storeForm.description"></textarea>
+          </label>
+        </div>
+
+        <button class="primary" type="submit" [disabled]="savingStore()">
+          {{ savingStore() ? L('Saving...', 'جار الحفظ...') : store() ? L('Save store profile', 'حفظ ملف المحل') : L('Create store profile', 'إنشاء ملف المحل') }}
+        </button>
+      </form>
+
+      <aside class="store-preview">
+        <div
+          class="store-cover"
+          [style.backgroundImage]="cssUrl(storeForm.logoUrl)">
+          <span *ngIf="!storeForm.logoUrl">{{ initials(storeForm.name || L('Store', 'محل')) }}</span>
+        </div>
+        <div class="store-preview-body">
+          <p class="eyebrow">{{ L('Marketplace preview', 'معاينة السوق') }}</p>
+          <h3>{{ storeForm.name || L('Unnamed store', 'محل بلا اسم') }}</h3>
+          <p>{{ storeForm.description || L('Add a short description so shoppers understand your style and pickup details.', 'أضف وصفاً قصيراً ليفهم المتسوقون أسلوبك وتفاصيل الاستلام.') }}</p>
+          <dl>
+            <div>
+              <dt>{{ L('Address', 'العنوان') }}</dt>
+              <dd>{{ storeForm.address || L('Not set', 'غير محدد') }}</dd>
+            </div>
+            <div>
+              <dt>{{ L('Products', 'المنتجات') }}</dt>
+              <dd>{{ productCount() }}</dd>
+            </div>
+          </dl>
+        </div>
+      </aside>
+    </section>
+
+    <section class="tab-panel billing-panel" *ngIf="activeTab() === 'billing'">
+      <div class="section-bar">
+        <div>
+          <p class="eyebrow">{{ L('Plan & billing', 'الباقة والفوترة') }}</p>
+          <h2>{{ L('Grow faster with Dokkana Pro', 'انمُ أسرع مع دكانة برو') }}</h2>
+        </div>
+        <span class="plan-chip" [class.pro]="isPro()">
+          {{ isPro() ? L('Pro plan', 'باقة برو') : L('Free plan', 'الباقة المجانية') }}
+        </span>
+      </div>
+
+      <div class="empty-shelf small" *ngIf="!store()">
+        <strong>{{ L('Create your store profile first', 'أنشئ ملف المحل أولاً') }}</strong>
+        <span>{{ L('You need a store before choosing a plan.', 'تحتاج إلى محل قبل اختيار الباقة.') }}</span>
+        <button class="primary compact" type="button" (click)="selectTab('store')">
+          {{ L('Go to store profile', 'اذهب لملف المحل') }}
+        </button>
+      </div>
+
+      <div class="plan-grid" *ngIf="store()">
+        <article class="plan-card" [class.active]="!isPro()">
+          <header class="plan-card-head">
+            <div>
+              <p class="eyebrow">{{ L('Starter', 'البداية') }}</p>
+              <h3>{{ L('Free', 'مجاني') }}</h3>
+            </div>
+            <p class="plan-price">0 <i>{{ L('EGP', 'ج.م') }}</i></p>
+          </header>
+          <ul class="plan-points">
+            <li>{{ L('List unlimited products', 'إدراج منتجات بلا حدود') }}</li>
+            <li>{{ L('Reservations & pickup', 'الحجوزات والاستلام') }}</li>
+            <li>{{ L('Basic sales stats', 'إحصائيات مبيعات أساسية') }}</li>
+          </ul>
+          <span class="current-tag" *ngIf="!isPro()">{{ L('Current plan', 'باقتك الحالية') }}</span>
+          <button class="ghost" type="button" *ngIf="isPro()" [disabled]="upgradingPlan()" (click)="setPlan('Free')">
+            {{ upgradingPlan() ? L('Switching…', 'جارٍ التغيير…') : L('Switch to Free', 'الرجوع للمجاني') }}
+          </button>
+        </article>
+
+        <article class="plan-card featured" [class.active]="isPro()">
+          <span class="plan-flag">★ {{ L('Pro', 'برو') }}</span>
+          <header class="plan-card-head">
+            <div>
+              <p class="eyebrow">{{ L('Most popular', 'الأكثر اختياراً') }}</p>
+              <h3>{{ L('Pro', 'برو') }}</h3>
+            </div>
+            <p class="plan-price">199 <i>{{ L('EGP / mo', 'ج.م / شهر') }}</i></p>
+          </header>
+          <ul class="plan-points">
+            <li>{{ L('Promoted placement in search & discover', 'ظهور مميز في البحث والاكتشاف') }}</li>
+            <li>{{ L('Sponsored notifications to shoppers', 'إشعارات ممولة للمتسوقين') }}</li>
+            <li>{{ L('Pro badge on your storefront', 'شارة برو على واجهة محلك') }}</li>
+            <li>{{ L('Advanced analytics & AI tools', 'تحليلات متقدمة وأدوات ذكاء اصطناعي') }}</li>
+          </ul>
+          <span class="current-tag" *ngIf="isPro()">{{ L('Current plan', 'باقتك الحالية') }}</span>
+          <button class="primary" type="button" *ngIf="!isPro()" [disabled]="upgradingPlan()" (click)="setPlan('Pro')">
+            {{ upgradingPlan() ? L('Upgrading…', 'جارٍ الترقية…') : L('Upgrade to Pro', 'الترقية إلى برو') }}
+          </button>
+        </article>
+      </div>
+
+      <p class="billing-note" *ngIf="store()">
+        {{ L('Billing is in demo mode — plan changes apply instantly with no real charge.', 'الفوترة في وضع تجريبي — تغييرات الباقة تُطبّق فوراً دون أي خصم حقيقي.') }}
+      </p>
+
+      <div class="wallet-grid" *ngIf="store()">
+        <article class="wallet-card">
+          <p class="eyebrow">{{ L('Wallet balance', 'رصيد المحفظة') }}</p>
+          <strong>{{ walletBalance() | number:'1.0-0' }} {{ L('EGP', 'ج.م') }}</strong>
+          <div class="wallet-topup">
+            <input type="number" min="50" step="50" name="topUpAmount" [(ngModel)]="topUpAmount" />
+            <button class="primary compact" type="button" (click)="topUpWallet()" [disabled]="walletLoading()">
+              {{ walletLoading() ? L('Adding...', 'جارٍ الشحن...') : L('Top up', 'اشحن') }}
+            </button>
+          </div>
+        </article>
+
+        <article class="wallet-card">
+          <p class="eyebrow">{{ L('Transaction history', 'سجل المعاملات') }}</p>
+          <div class="transaction-list" *ngIf="billing()?.transactions?.length; else noTransactions">
+            <div class="transaction-row" *ngFor="let tx of billing()?.transactions">
+              <span>{{ tx.type }}</span>
+              <strong [class.negative]="tx.amount < 0">{{ tx.amount | number:'1.0-0' }} {{ L('EGP', 'ج.م') }}</strong>
+            </div>
+          </div>
+          <ng-template #noTransactions>
+            <p class="billing-note">{{ L('No wallet transactions yet.', 'لا توجد معاملات بعد.') }}</p>
+          </ng-template>
+        </article>
+      </div>
+    </section>
+
+    <section class="tab-panel promotions-panel" *ngIf="activeTab() === 'promotions'">
+      <div class="section-bar">
+        <div>
+          <p class="eyebrow">{{ L('Promotions', 'العروض الممولة') }}</p>
+          <h2>{{ L('Buy visibility, messages, and real leads', 'اشتري ظهور ورسائل وعملاء حقيقيين') }}</h2>
+        </div>
+        <div class="promo-summary">
+          <span><b>{{ campaignImpressions() }}</b> {{ L('impressions', 'ظهور') }}</span>
+          <span><b>{{ campaignClicks() }}</b> {{ L('clicks', 'نقرات') }}</span>
+          <span><b>{{ leadCount() }}</b> {{ L('leads', 'عميل') }}</span>
+        </div>
+      </div>
+
+      <div class="promo-grid">
+        <article class="promo-card">
+          <p class="eyebrow">{{ L('Featured placement', 'ظهور مميز') }}</p>
+          <h3>{{ L('Promote a product or your whole store', 'روّج منتج أو المحل كله') }}</h3>
+          <div class="form-grid compact-grid">
+            <label>
+              <span>{{ L('Product', 'المنتج') }}</span>
+              <select name="promotionProductId" [(ngModel)]="promotionProductId">
+                <option [ngValue]="null">{{ L('Store campaign', 'حملة للمحل') }}</option>
+                <option *ngFor="let product of productsList()" [ngValue]="product.id">{{ product.title }}</option>
+              </select>
+            </label>
+            <label>
+              <span>{{ L('Budget', 'الميزانية') }}</span>
+              <input type="number" min="50" step="50" name="promotionBudget" [(ngModel)]="promotionBudget" />
+            </label>
+            <label>
+              <span>{{ L('Days', 'الأيام') }}</span>
+              <input type="number" min="1" max="30" name="promotionDays" [(ngModel)]="promotionDays" />
+            </label>
+          </div>
+          <button class="primary compact" type="button" (click)="submitFeaturedPromotion()" [disabled]="promotionSaving() || !store()">
+            {{ promotionSaving() ? L('Submitting...', 'جارٍ الإرسال...') : L('Submit for approval', 'إرسال للمراجعة') }}
+          </button>
+        </article>
+
+        <article class="promo-card">
+          <p class="eyebrow">{{ L('Sponsored notification', 'إشعار ممول') }}</p>
+          <h3>{{ L('Send a labelled sale message', 'ابعث رسالة عرض واضحة') }}</h3>
+          <div class="form-grid compact-grid">
+            <label>
+              <span>{{ L('Title', 'العنوان') }}</span>
+              <input type="text" name="notificationTitle" [(ngModel)]="notificationTitle" />
+            </label>
+            <label>
+              <span>{{ L('Audience', 'الجمهور') }}</span>
+              <select name="notificationAudience" [(ngModel)]="notificationAudience">
+                <option value="Followers">{{ L('Store followers', 'متابعو المحل') }}</option>
+                <option value="AllShoppers">{{ L('All shoppers', 'كل المتسوقين') }}</option>
+                <option value="WishlistMatches">{{ L('Wishlist matches', 'مطابقات المفضلة') }}</option>
+              </select>
+            </label>
+            <label>
+              <span>{{ L('Budget', 'الميزانية') }}</span>
+              <input type="number" min="50" step="50" name="notificationBudget" [(ngModel)]="notificationBudget" />
+            </label>
+            <label class="wide">
+              <span>{{ L('Message', 'الرسالة') }}</span>
+              <textarea rows="3" name="notificationMessage" [(ngModel)]="notificationMessage"></textarea>
+            </label>
+          </div>
+          <button class="primary compact" type="button" (click)="submitSponsoredNotification()" [disabled]="notificationSaving() || !store()">
+            {{ notificationSaving() ? L('Submitting...', 'جارٍ الإرسال...') : L('Create promotion', 'إنشاء العرض') }}
+          </button>
+        </article>
+
+        <article class="promo-card">
+          <p class="eyebrow">{{ L('Flash sale', 'تخفيض سريع') }}</p>
+          <h3>{{ L('Schedule a visible sale badge', 'جدول شارة تخفيض ظاهرة') }}</h3>
+          <div class="form-grid compact-grid">
+            <label>
+              <span>{{ L('Product', 'المنتج') }}</span>
+              <select name="saleProductId" [(ngModel)]="saleProductId">
+                <option [ngValue]="null">{{ L('Choose product', 'اختر المنتج') }}</option>
+                <option *ngFor="let product of productsList()" [ngValue]="product.id">{{ product.title }}</option>
+              </select>
+            </label>
+            <label>
+              <span>{{ L('Sale price', 'سعر التخفيض') }}</span>
+              <input type="number" min="1" step="1" name="salePrice" [(ngModel)]="salePrice" />
+            </label>
+            <label>
+              <span>{{ L('Days', 'الأيام') }}</span>
+              <input type="number" min="1" max="30" name="saleDays" [(ngModel)]="saleDays" />
+            </label>
+          </div>
+          <button class="primary compact" type="button" (click)="scheduleSale()" [disabled]="saleSaving() || !saleProductId">
+            {{ saleSaving() ? L('Scheduling...', 'جارٍ الجدولة...') : L('Schedule sale', 'جدولة التخفيض') }}
+          </button>
+        </article>
+      </div>
+
+      <div class="campaign-layout">
+        <article class="campaign-list">
+          <div class="list-head">
+            <div>
+              <p class="eyebrow">{{ L('Campaign performance', 'أداء الحملات') }}</p>
+              <h3>{{ campaigns().length }} {{ L('campaigns', 'حملة') }}</h3>
+            </div>
+            <span class="queue-chip">{{ campaignSpend() | number:'1.0-0' }} {{ L('EGP spend', 'ج.م مصروف') }}</span>
+          </div>
+
+          <p class="inline-loading" *ngIf="campaignsLoading()">{{ L('Loading campaigns...', 'جارٍ تحميل الحملات...') }}</p>
+          <div class="empty-shelf small" *ngIf="!campaignsLoading() && campaigns().length === 0">
+            <strong>{{ L('No campaigns yet', 'لا توجد حملات بعد') }}</strong>
+            <span>{{ L('Create a placement or sponsored notification to see metrics here.', 'أنشئ ظهور ممول أو إشعار لرؤية الأداء هنا.') }}</span>
+          </div>
+
+          <article class="campaign-row" *ngFor="let campaign of campaigns()">
+            <div>
+              <strong>{{ campaign.productTitle || campaign.title || store()?.name }}</strong>
+              <small>{{ campaignTypeLabel(campaign.type) }}</small>
+            </div>
+            <span class="campaign-status" [ngClass]="campaignStatusClass(campaign.status)">
+              {{ campaignStatusLabel(campaign.status) }}
+            </span>
+            <div class="campaign-metrics">
+              <span>{{ campaign.impressions }} {{ L('views', 'ظهور') }}</span>
+              <span>{{ campaign.clicks }} {{ L('clicks', 'نقرات') }}</span>
+              <span *ngIf="campaign.recipientsCount">{{ campaign.recipientsCount }} {{ L('sent', 'مرسل') }}</span>
+            </div>
+          </article>
+        </article>
+
+        <aside class="guidance-panel leads-panel">
+          <p class="eyebrow">{{ L('Leads', 'العملاء') }}</p>
+          <h3>{{ leadCount() }} {{ L('tracked actions', 'إجراء متتبع') }}</h3>
+          <ul *ngIf="leads().length; else noLeads">
+            <li *ngFor="let lead of leads().slice(0, 6)">
+              {{ lead.type }} · {{ lead.productTitle || lead.storeName }} · {{ lead.createdAt | date:'short' }}
+            </li>
+          </ul>
+          <ng-template #noLeads>
+            <p class="billing-note">{{ L('WhatsApp and reserve leads will appear here.', 'عملاء واتساب والحجز سيظهرون هنا.') }}</p>
+          </ng-template>
+        </aside>
+      </div>
+    </section>
+
+    <section class="tab-panel ai-panel" *ngIf="activeTab() === 'catalog'">
+      <article class="ai-module">
+        <div class="ai-head">
+          <span class="ai-badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
+          </span>
+          <div>
+            <p class="eyebrow ai-eyebrow">{{ L('Catalog RAG', 'كتالوج RAG') }}</p>
+            <h2>{{ L('Upload a PDF catalog, then ask about it', 'ارفع كتالوج PDF ثم اسأل عنه') }}</h2>
+          </div>
+        </div>
+        <p class="ai-muted">
+          {{ L('Questions are answered only from your uploaded catalog — prices, sizes, materials, return policy.', 'الأسئلة بتتجاوب من الكتالوج اللي رفعته بس — الأسعار والمقاسات والخامات وسياسة الاستبدال.') }}
+        </p>
+
+        <label class="upload-zone" [class.busy]="catalogUploading()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>
+          <span *ngIf="!catalogUploading()">{{ L('Choose a PDF catalog', 'اختر كتالوج PDF') }}</span>
+          <span *ngIf="catalogUploading()">{{ L('Uploading & embedding…', 'جارٍ الرفع والمعالجة…') }}</span>
+          <input type="file" accept="application/pdf" (change)="uploadCatalog($event)" [disabled]="catalogUploading()" />
+        </label>
+
+        <div class="ai-status ok" *ngIf="catalogUpload() as up">
+          ✅ {{ up.fileName }} — {{ up.chunks }} {{ L('chunks indexed', 'مقطع مُفهرس') }}
+        </div>
+        <div class="ai-status err" *ngIf="catalogError()">{{ catalogError() }}</div>
+
+        <div class="ai-ask" *ngIf="catalogUpload()?.ready">
+          <input type="text" [(ngModel)]="catalogQuestion" (keyup.enter)="askCatalog()"
+                 [placeholder]="L('e.g. How much is the white sneaker?', 'مثلاً: الكوتشي الأبيض بكام؟')" />
+          <button type="button" class="ai-send" (click)="askCatalog()" [disabled]="catalogAsking()">
+            {{ catalogAsking() ? L('Asking…', '…') : L('Ask', 'اسأل') }}
+          </button>
+        </div>
+
+        <div class="ai-answer" *ngIf="catalogResult() as r">
+          <p class="answer-text">{{ r.answer }}</p>
+          <p class="answer-meta">{{ L('Retrieval mode', 'وضع الاسترجاع') }}: <b>{{ r.retrievalMode }}</b></p>
+        </div>
+      </article>
+      <aside class="guidance-panel">
+        <h3>{{ L('How it works', 'إزاي بيشتغل') }}</h3>
+        <ul>
+          <li>{{ L('Upload a text-based PDF catalog', 'ارفع كتالوج PDF نصي') }}</li>
+          <li>{{ L('It is split into chunks and embedded', 'بيتقسّم لمقاطع وبيتعملها embeddings') }}</li>
+          <li>{{ L('Answers come from the closest chunks (RAG)', 'الإجابات بتيجي من أقرب المقاطع (RAG)') }}</li>
+        </ul>
+      </aside>
+    </section>
+
+    <section class="tab-panel ai-panel" *ngIf="activeTab() === 'copilot'">
+      <article class="ai-module">
+        <div class="ai-head">
+          <span class="ai-badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z" /><path d="M19 14l.7 1.9 1.9.7-1.9.7-.7 1.9-.7-1.9-1.9-.7 1.9-.7z" /></svg>
+          </span>
+          <div>
+            <p class="eyebrow ai-eyebrow">{{ L('Business Copilot', 'مساعد الأعمال') }}</p>
+            <h2>{{ L('Ask about your sales and stock', 'اسأل عن مبيعاتك ومخزونك') }}</h2>
+          </div>
+        </div>
+        <p class="ai-muted">
+          {{ L('Answered from your real completed orders — best sellers, sales summary, low stock, unsold items.', 'بيتجاوب من طلباتك المكتملة الحقيقية — الأكثر مبيعًا، ملخص المبيعات، المخزون المنخفض، والمنتجات اللي مش بتتباع.') }}
+        </p>
+
+        <div class="prompt-row">
+          <button type="button" *ngFor="let s of copilotSuggestions"
+                  (click)="askCopilotSuggestion(s)" [disabled]="copilotLoading()">
+            {{ L(s.en, s.ar) }}
+          </button>
+        </div>
+
+        <div class="ai-ask">
+          <input type="text" [(ngModel)]="copilotQuestion" (keyup.enter)="askCopilot()"
+                 [placeholder]="L('Ask a question…', 'اكتب سؤالك…')" />
+          <button type="button" class="ai-send" (click)="askCopilot()" [disabled]="copilotLoading()">
+            {{ copilotLoading() ? L('Thinking…', '…') : L('Ask', 'اسأل') }}
+          </button>
+        </div>
+
+        <div class="ai-status err" *ngIf="copilotError()">{{ copilotError() }}</div>
+
+        <div class="ai-answer" *ngIf="copilotResult() as r">
+          <p class="answer-text">{{ r.answer }}</p>
+          <table class="ai-table" *ngIf="copilotRows().length">
+            <thead><tr><th *ngFor="let c of copilotColumns()">{{ c }}</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let row of copilotRows()">
+                <td *ngFor="let c of copilotColumns()">{{ row[c] }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- MM3: real Pro-only insights from completed orders + nearby market prices -->
+        <div class="pro-insight-board" *ngIf="!insightsLoading()">
+          <ng-container *ngIf="insights()?.isPro; else insightUpsell">
+            <div class="insight-col">
+              <p class="eyebrow ai-eyebrow">{{ L('Demand forecast', 'توقع الطلب') }}</p>
+              <p class="ai-muted" *ngIf="!insights()?.forecasts?.length">
+                {{ L('Not enough recent sales to forecast yet.', 'لا توجد مبيعات حديثة كافية للتوقع بعد.') }}
+              </p>
+              <div class="insight-row" *ngFor="let f of insights()?.forecasts" [ngClass]="'sev-' + f.severity">
+                <span class="insight-dot" aria-hidden="true"></span>
+                <span class="insight-text">
+                  <strong>{{ f.productTitle }}</strong>
+                  {{ L('likely to sell out in', 'متوقع ينفد خلال') }} ~{{ f.daysToSellout }} {{ L('days', 'يوم') }}
+                  <small>({{ f.unitsSold30d }} {{ L('sold / 30d', 'مبيع/30 يوم') }} · {{ f.stock }} {{ L('in stock', 'متوفر') }})</small>
+                </span>
+              </div>
+            </div>
+            <div class="insight-col">
+              <p class="eyebrow ai-eyebrow">{{ L('Pricing hints', 'تلميحات التسعير') }}</p>
+              <p class="ai-muted" *ngIf="!insights()?.pricingHints?.length">
+                {{ L('Your prices look in line with nearby stores.', 'أسعارك متوافقة مع المحلات القريبة.') }}
+              </p>
+              <div class="insight-row" *ngFor="let h of insights()?.pricingHints" [ngClass]="h.verdict === 'high' ? 'sev-soon' : 'sev-ok'">
+                <span class="insight-dot" aria-hidden="true"></span>
+                <span class="insight-text">
+                  <strong>{{ h.productTitle }}</strong>
+                  {{ h.verdict === 'high' ? L('priced above similar items', 'سعره أعلى من المشابه') : L('priced below similar items', 'سعره أقل من المشابه') }}
+                  ({{ h.marketLow | number:'1.0-0' }}–{{ h.marketHigh | number:'1.0-0' }} {{ L('EGP', 'ج.م') }});
+                  {{ L('you’re at', 'سعرك') }} {{ h.price | number:'1.0-0' }} {{ L('EGP', 'ج.م') }}
+                </span>
+              </div>
+            </div>
+          </ng-container>
+          <ng-template #insightUpsell>
+            <div class="insight-locked">
+              <p class="eyebrow ai-eyebrow">{{ L('Pro-only insights', 'رؤى لباقة برو') }}</p>
+              <span class="ai-muted">{{ L('Upgrade to Pro to see demand forecasts and pricing hints from your real sales and nearby prices.', 'رقّي لبرو لرؤية توقعات الطلب وتلميحات التسعير من مبيعاتك الحقيقية وأسعار المحلات القريبة.') }}</span>
+              <button class="primary compact" type="button" (click)="selectTab('billing')">{{ L('Upgrade to Pro', 'الترقية إلى برو') }}</button>
+            </div>
+          </ng-template>
+        </div>
+      </article>
+      <aside class="guidance-panel">
+        <h3>{{ L('Available signals', 'الإشارات المتاحة') }}</h3>
+        <ul>
+          <li>{{ lowStockCount() }} {{ L('products low on stock', 'منتجات منخفضة المخزون') }}</li>
+          <li>{{ outOfStockCount() }} {{ L('products out of stock', 'منتجات نفد مخزونها') }}</li>
+          <li>{{ inventoryValue() | number:'1.0-0' }} {{ L('EGP in listed inventory', 'ج.م في المخزون المعروض') }}</li>
+        </ul>
+        <div class="pro-insights" *ngIf="isPro(); else proUpgradePrompt">
+          <p class="eyebrow">{{ L('Pro forecast', 'توقعات برو') }}</p>
+          <span *ngFor="let insight of proInsights()">{{ L(insight.en, insight.ar) }}</span>
+        </div>
+        <ng-template #proUpgradePrompt>
+          <div class="pro-insights locked">
+            <p class="eyebrow">{{ L('Pro-only', 'لباقة برو') }}</p>
+            <span>{{ L('Upgrade to see demand forecasts and pricing hints.', 'رقّي لبرو عشان تشوف توقعات الطلب وتلميحات التسعير.') }}</span>
+            <button class="ghost compact" type="button" (click)="selectTab('billing')">{{ L('View plans', 'عرض الباقات') }}</button>
+          </div>
+        </ng-template>
+      </aside>
+    </section>
+      </main>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-label="Puffer vest">
+  <rect width="640" height="640" rx="48" fill="#e9e2d7"/>
+  <path d="M238 126l62-24 20 42 20-42 62 24 42 120-48 28v244H244V274l-48-28 42-120z" fill="#667044"/>
+  <g stroke="#9aa36b" stroke-width="12"><path d="M244 244h152"/><path d="M244 318h152"/><path d="M244 392h152"/></g>
+  <path d="M320 146v372" stroke="#414829" stroke-width="10"/>
+</svg>

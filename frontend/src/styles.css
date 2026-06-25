@@ -1,0 +1,227 @@
+/* ============================================================
+   Dokkana — Global design system  ("Souk Modern")
+   Tokens, themes, RTL, base, animations.
+   ============================================================ */
+
+:root {
+  --sand: oklch(0.963 0.018 78);
+  --cream: oklch(0.991 0.010 82);
+  --linen: oklch(0.942 0.020 72);
+  --porcelain: oklch(0.982 0.006 88);
+  --ink: oklch(0.205 0.024 48);
+  --ink-soft: oklch(0.425 0.023 54);
+  --clay: oklch(0.645 0.158 43);
+  --clay-deep: oklch(0.505 0.140 39);
+  --nile: oklch(0.575 0.083 195);
+  --nile-deep: oklch(0.405 0.074 198);
+  --ochre: oklch(0.765 0.120 78);
+  --hibiscus: oklch(0.540 0.170 22);
+  --success: oklch(0.55 0.10 155);
+  --warning: oklch(0.765 0.120 78);
+  --danger: oklch(0.555 0.170 24);
+  --info: oklch(0.575 0.083 195);
+  --focus-ring: oklch(0.575 0.083 195/.45);
+  --border: oklch(0.855 0.018 72);
+  --drench: oklch(0.175 0.014 58);
+  --drench-2: oklch(0.235 0.016 58);
+  --on-drench: oklch(0.935 0.012 78);
+  --on-drench-soft: oklch(0.78 0.020 70);
+  --paper: oklch(0.991 0.010 82);
+  --paper-ink: oklch(0.205 0.024 48);
+  --paper-soft: oklch(0.425 0.023 54);
+
+  --shadow: 0 1px 1px oklch(0.28 0.03 48/.04), 0 16px 40px oklch(0.28 0.03 48/.10);
+  --shadow-lg: 0 2px 4px oklch(0.25 0.03 48/.08), 0 38px 90px oklch(0.22 0.03 48/.18);
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 72px;
+
+  --ease: cubic-bezier(.16, 1, .3, 1);
+  --ease-out: cubic-bezier(.22, 1, .36, 1);
+
+  --sans: "Plus Jakarta Sans", "Segoe UI", Inter, system-ui, sans-serif;
+  --serif: "Fraunces", Georgia, "Times New Roman", serif;
+  --ar: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+
+  --maxw: 1200px;
+}
+
+[data-theme="dark"] {
+  --sand: oklch(0.172 0.012 60);
+  --cream: oklch(0.225 0.014 60);
+  --linen: oklch(0.270 0.015 60);
+  --porcelain: oklch(0.255 0.013 60);
+  --ink: oklch(0.935 0.012 78);
+  --ink-soft: oklch(0.735 0.016 76);
+  --border: oklch(0.34 0.012 60);
+  --drench: oklch(0.115 0.010 58);
+  --drench-2: oklch(0.202 0.014 58);
+  --shadow: 0 1px 2px oklch(0 0 0/.3), 0 10px 30px oklch(0 0 0/.4);
+  --shadow-lg: 0 2px 6px oklch(0 0 0/.4), 0 30px 70px oklch(0 0 0/.55);
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+html, body {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--sans);
+  background: linear-gradient(180deg, var(--sand), var(--cream) 46%, var(--linen));
+  color: var(--ink);
+  line-height: 1.55;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  /* smooth theme switch */
+  transition: background-color .45s var(--ease-out), color .45s var(--ease-out);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  background-image: radial-gradient(oklch(0.24 0.02 48/.10) .6px, transparent .7px);
+  background-size: 5px 5px;
+  mix-blend-mode: multiply;
+  opacity: .24;
+}
+
+[data-theme="dark"] body::before {
+  opacity: .16;
+  mix-blend-mode: normal;
+}
+
+/* Arabic typography when RTL */
+[dir="rtl"] body,
+[dir="rtl"] button,
+[dir="rtl"] input,
+[dir="rtl"] textarea,
+[dir="rtl"] select { font-family: var(--ar); }
+
+::selection { background: var(--clay); color: var(--paper); }
+
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; cursor: pointer; }
+img { display: block; max-width: 100%; }
+
+.wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 26px; }
+
+:where(a[href], button, input, select, textarea, summary, [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+.skip-link {
+  position: fixed;
+  inset-block-start: 12px;
+  inset-inline-start: 12px;
+  z-index: 1000;
+  transform: translateY(-140%);
+  border: 1px solid oklch(1 0 0/.18);
+  border-radius: var(--radius-sm);
+  background: var(--drench);
+  color: var(--on-drench);
+  box-shadow: var(--shadow);
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 800;
+  transition: transform .2s var(--ease-out);
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.state-surface {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--paper);
+  color: var(--paper-ink);
+  box-shadow: var(--shadow);
+}
+
+.state-muted { color: var(--paper-soft); }
+
+.skeleton-line {
+  min-height: 12px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--linen), var(--porcelain), var(--linen));
+  background-size: 480px 100%;
+  animation: shimmer 1.2s linear infinite;
+}
+
+/* themed surfaces transition smoothly too */
+.themed { transition: background-color .45s var(--ease-out), border-color .45s var(--ease-out), color .45s var(--ease-out); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; border: 3px solid var(--sand); }
+::-webkit-scrollbar-thumb:hover { background: var(--clay); }
+
+/* ============================================================
+   Animations
+   ============================================================ */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(26px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pop {
+  from { opacity: 0; transform: scale(.94) translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0 oklch(0.61 0.085 195/.5); }
+  70%  { box-shadow: 0 0 0 11px oklch(0.61 0.085 195/0); }
+  100% { box-shadow: 0 0 0 0 oklch(0.61 0.085 195/0); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+@keyframes shimmer {
+  from { background-position: -480px 0; }
+  to   { background-position: 480px 0; }
+}
+
+/* Scroll-reveal helper (toggled by a directive/IntersectionObserver) */
+.reveal { opacity: 0; transform: translateY(28px); transition: opacity .8s var(--ease-out), transform .8s var(--ease-out); }
+.reveal.in { opacity: 1; transform: none; }
+
+/* Route transition (page enter) */
+.route-anim { animation: fadeInUp .5s var(--ease-out) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .reveal { opacity: 1; transform: none; }
+}

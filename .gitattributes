@@ -1,0 +1,10 @@
+# Normalize line endings so the team doesn't churn on CRLF vs LF.
+* text=auto eol=lf
+*.cs text eol=lf
+*.ts text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+# Binary files
+*.png binary
+*.jpg binary
+*.ico binary

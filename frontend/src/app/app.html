@@ -1,0 +1,17 @@
+<a class="skip-link" href="#main-content">Skip to content</a>
+<app-navbar *ngIf="!chromeless()"></app-navbar>
+<main id="main-content" class="page-host" tabindex="-1" [@routeAnim]="routeState(outlet)">
+  <router-outlet #outlet="outlet"></router-outlet>
+</main>
+<app-footer *ngIf="!chromeless()"></app-footer>
+<app-cart></app-cart>
+
+<!-- App-wide notice toast (route-guard messages, etc.) -->
+<div class="app-toast" [class.show]="notice.message()" [class.error]="notice.tone() === 'error'" role="status" aria-live="polite">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" y1="8" x2="12" y2="12" />
+    <line x1="12" y1="16" x2="12.01" y2="16" />
+  </svg>
+  <span>{{ notice.message() }}</span>
+</div>

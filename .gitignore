@@ -1,0 +1,22 @@
+# ── .NET / backend ───────────────────────────────────────────
+bin/
+obj/
+.vs/
+*.user
+[Bb]uild/
+# ── Secrets — never commit API keys ──────────────────────────
+appsettings.*.Local.json
+secrets.json
+.env
+*.env.local
+# ── Angular / frontend ───────────────────────────────────────
+node_modules/
+dist/
+.angular/
+# ── IDE ──────────────────────────────────────────────────────
+.idea/
+*.swp
+.DS_Store
+
+# Local ASP.NET runtime keys
+backend/Dokkana.API/App_Data/DataProtectionKeys/

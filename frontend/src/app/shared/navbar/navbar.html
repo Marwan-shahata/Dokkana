@@ -1,0 +1,89 @@
+<nav class="nav themed" [class.scrolled]="isScrolled" [class.onhero]="useHeroNav">
+  <div class="wrap nav-in">
+
+    <!-- Brand -->
+    <button class="brand" (click)="goBrand()" aria-label="Dokkana home">
+      <span class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 9.5V19a1 1 0 001 1h12a1 1 0 001-1V9.5"/>
+          <path d="M3.5 9.5 5 5h14l1.5 4.5a2 2 0 01-3.9.6 2 2 0 01-3.8 0 2 2 0 01-3.8 0 2 2 0 01-3.9-.6z"/>
+          <path d="M10.5 20v-4.5h3V20"/>
+        </svg>
+      </span>
+      <span class="brand-text"><b>Dokkana</b><span class="ar">دكانة</span></span>
+    </button>
+
+    <!-- Links -->
+    <div class="links" [class.open]="mobileOpen">
+      <button *ngFor="let l of visibleLinks()"
+              class="link"
+              [class.active]="activeId === l.id"
+              (click)="go(l.id, l.route)">{{ L(l.en, l.ar) }}</button>
+    </div>
+
+    <span class="spacer"></span>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button
+        class="theme-toggle"
+        (click)="toggleTheme()"
+        [attr.aria-label]="themeLabel()"
+        [attr.title]="themeLabel()"
+        role="switch"
+        [attr.aria-checked]="theme.isDark()"
+      >
+        <span class="tt-ico tt-sun" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 3v1.6M12 19.4V21M5.2 5.2l1.1 1.1M17.7 17.7l1.1 1.1M3 12h1.6M19.4 12H21M5.2 18.8l1.1-1.1M17.7 6.3l1.1-1.1"/>
+          </svg>
+        </span>
+        <span class="tt-ico tt-moon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/>
+          </svg>
+        </span>
+        <span class="tt-thumb" aria-hidden="true"></span>
+      </button>
+
+      <button
+        class="lang"
+        (click)="toggleLanguage()"
+        [attr.aria-label]="languageLabel()"
+        [attr.title]="languageLabel()"
+        [attr.aria-pressed]="lang.isAr()"
+      >
+        {{ lang.isAr() ? 'EN' : 'العربية' }}
+      </button>
+
+      <app-notification-bell *ngIf="auth.isLoggedIn()"></app-notification-bell>
+
+      <button class="icon-btn" (click)="goAccount()" [attr.aria-label]="L('Account','الحساب')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>
+        </svg>
+      </button>
+
+      <button *ngIf="auth.isLoggedIn()" class="icon-btn" (click)="logout()" [attr.aria-label]="L('Log out','تسجيل الخروج')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>
+        </svg>
+      </button>
+
+      <button *ngIf="!auth.isLoggedIn() || auth.isShopper()" class="icon-btn cart" (click)="goCart()" [attr.aria-label]="L('Cart','السلة')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 6h15l-2 9H8L6 6Z"/><path d="M6 6 5 3H2"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/>
+        </svg>
+        <span class="cart-count" *ngIf="cart.count() > 0">{{ cart.count() }}</span>
+      </button>
+
+      <button class="icon-btn burger" (click)="toggleMenu()" [attr.aria-label]="L('Menu','القائمة')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path *ngIf="!mobileOpen" d="M4 7h16M4 12h16M4 17h16"/>
+          <path *ngIf="mobileOpen" d="M6 6l12 12M18 6L6 18"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</nav>

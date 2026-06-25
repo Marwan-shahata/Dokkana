@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Dokkana.API/Dokkana.API.csproj" />
+  <Project Path="Dokkana.BLL/Dokkana.BLL.csproj" />
+  <Project Path="Dokkana.Common/Dokkana.Common.csproj" />
+  <Project Path="Dokkana.DAL/Dokkana.DAL.csproj" />
+</Solution>

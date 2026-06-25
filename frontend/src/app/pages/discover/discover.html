@@ -1,0 +1,128 @@
+<section class="discover" [class.rtl]="lang.isAr()">
+
+  <!-- Greeting + AI entry -->
+  <header class="dz-hero">
+    <div class="dz-hero-in">
+      <p class="dz-eyebrow">{{ L('Welcome back', 'أهلاً بعودتك') }}</p>
+      <h1>{{ L('Hi ' + firstName() + ', what are you looking for?', 'أهلاً ' + firstName() + '، بتدوّر على إيه؟') }}</h1>
+
+      <div class="dz-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input
+          [(ngModel)]="query"
+          (keydown.enter)="runAiSearch()"
+          [placeholder]="L('Describe an item — the AI finds it nearby', 'اوصف منتج — والذكاء يلاقيهولك جنبك')"
+          [attr.aria-label]="L('AI search', 'بحث ذكي')" />
+        <button type="button" (click)="runAiSearch()">
+          <span class="spark" aria-hidden="true">✦</span>{{ L('Ask AI', 'اسأل الذكاء') }}
+        </button>
+      </div>
+
+      <div class="dz-cats" *ngIf="categories().length">
+        <button *ngFor="let c of categories()" type="button" (click)="openCategory(c)">{{ c }}</button>
+      </div>
+
+      <div class="dz-trends" *ngIf="trends().length">
+        <span>{{ L('Trending now', 'الأكثر بحثاً') }}</span>
+        <button *ngFor="let t of trends()" type="button" (click)="openTrend(t)">{{ t.query }}</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Reservation shortcut -->
+  <button class="dz-reservations" type="button" (click)="viewReservations()">
+    <span class="ic" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+    </span>
+    <span class="txt">
+      <b>{{ L('Your reservations', 'حجوزاتك') }}</b>
+      <small>{{ L('Track pickup codes and order status', 'تابع أكواد الاستلام وحالة الطلبات') }}</small>
+    </span>
+    <span class="arr" aria-hidden="true">→</span>
+  </button>
+
+  <!-- Sponsored products -->
+  <div class="dz-section-head" *ngIf="sponsoredProducts().length">
+    <h2>{{ L('Sponsored picks', 'اختيارات ممولة') }}</h2>
+  </div>
+
+  <div class="dz-grid sponsored-grid" *ngIf="sponsoredProducts().length">
+    <article class="dz-card sponsored-card" *ngFor="let p of sponsoredProducts()" (click)="openProduct(p)">
+      <div class="ph">
+        <img *ngIf="p.image" [src]="p.image" (error)="onImgError($event)" alt="" loading="lazy" />
+        <span class="cat ad">{{ L('Ad', 'إعلان') }}</span>
+      </div>
+      <div class="pb">
+        <div class="store">{{ p.store }}</div>
+        <div class="nm">{{ p.title }}</div>
+        <div class="row">
+          <span class="pr">
+            <s *ngIf="p.isOnSale && p.originalPrice">{{ p.originalPrice }}</s>
+            {{ displayPrice(p) }} <small>{{ L('EGP', 'ج.م') }}</small>
+          </span>
+          <button class="add" (click)="addToCart(p, $event)" [attr.aria-label]="L('Reserve ' + p.title, 'احجز ' + p.title)">+</button>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <!-- Recommended products -->
+  <div class="dz-section-head">
+    <h2>{{ L('Recommended for you', 'مرشّح ليك') }}</h2>
+    <button type="button" class="link" (click)="browseStores()">{{ L('Browse stores', 'تصفّح المحلات') }} →</button>
+  </div>
+
+  <div class="dz-grid" *ngIf="productsLoading()">
+    <div class="dz-card skeleton" *ngFor="let s of [1,2,3,4,5,6]" aria-hidden="true"><div class="ph"></div></div>
+  </div>
+
+  <div class="dz-empty" *ngIf="!productsLoading() && products().length === 0">
+    <p>{{ L('No products to show yet. Try the AI assistant above.', 'لا توجد منتجات للعرض بعد. جرّب المساعد الذكي بالأعلى.') }}</p>
+  </div>
+
+  <div class="dz-grid" *ngIf="!productsLoading() && products().length">
+    <article class="dz-card" *ngFor="let p of products()" (click)="openProduct(p)">
+      <div class="ph">
+        <img *ngIf="p.image" [src]="p.image" (error)="onImgError($event)" alt="" loading="lazy" />
+        <span class="cat" *ngIf="p.category">{{ p.category }}</span>
+      </div>
+      <div class="pb">
+        <div class="store">{{ p.store }}</div>
+        <div class="nm">{{ p.title }}</div>
+        <div class="row">
+          <span class="pr">
+            <s *ngIf="p.isOnSale && p.originalPrice">{{ p.originalPrice }}</s>
+            {{ displayPrice(p) }} <small>{{ L('EGP', 'ج.م') }}</small>
+          </span>
+          <button class="add" (click)="addToCart(p, $event)" [attr.aria-label]="L('Reserve ' + p.title, 'احجز ' + p.title)">+</button>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <!-- Nearby stores -->
+  <div class="dz-section-head">
+    <h2>{{ L('Stores to explore', 'محلات تستكشفها') }}</h2>
+  </div>
+
+  <div class="dz-stores" *ngIf="storesLoading()">
+    <div class="dz-store skeleton" *ngFor="let s of [1,2,3,4]" aria-hidden="true"></div>
+  </div>
+
+  <div class="dz-empty" *ngIf="!storesLoading() && stores().length === 0">
+    <p>{{ L('No stores available yet.', 'لا توجد محلات متاحة بعد.') }}</p>
+  </div>
+
+  <div class="dz-stores" *ngIf="!storesLoading() && stores().length">
+    <button class="dz-store" *ngFor="let s of stores()" type="button" (click)="openStore(s)">
+      <span class="logo" *ngIf="s.logoUrl"><img [src]="s.logoUrl" [alt]="s.name" (error)="onImgError($event)" /></span>
+      <span class="logo placeholder" *ngIf="!s.logoUrl">{{ initials(s.name) }}</span>
+      <span class="info">
+        <span class="name">{{ s.name }}</span>
+        <span class="addr" *ngIf="s.address">📍 {{ s.address }}</span>
+        <span class="count" *ngIf="s.productCount">{{ s.productCount }} {{ L('products', 'منتج') }}</span>
+      </span>
+    </button>
+  </div>
+
+</section>

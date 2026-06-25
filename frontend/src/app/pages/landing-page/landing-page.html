@@ -1,0 +1,197 @@
+<main class="landing-shell">
+  <section id="hero" class="hero-section">
+    <div class="hero-photo" aria-hidden="true"></div>
+    <div class="hero-shade" aria-hidden="true"></div>
+
+    <div class="landing-wrap hero-grid">
+      <div class="hero-copy" data-reveal>
+        <span class="eyebrow">
+          <span></span>
+          {{ L('Local fashion, searchable', 'موضة محلية تلاقيها بالبحث') }}
+        </span>
+        <h1>{{ L('Ask for the outfit. Walk into the shop.', 'قولنا اللوك، وروح للمحل.') }}</h1>
+        <p>
+          {{ L('Dokkana turns natural language into nearby fashion options, with prices, stores, and Arabic or English search in one flow.', 'دكانة بتحول وصفك لاقتراحات لبس قريبة منك، بالأسعار والمحلات، وتدور بالعربي أو الإنجليزي في نفس المكان.') }}
+        </p>
+
+        <div class="hero-actions" aria-label="Primary actions">
+          <button type="button" class="btn-primary" (click)="openAiSearch()">
+            <span aria-hidden="true">⌕</span>
+            {{ L('Try AI Search', 'جرب البحث الذكي') }}
+          </button>
+          <button type="button" class="btn-glass" (click)="viewStores()">
+            {{ L('Browse stores', 'تصفح المحلات') }}
+          </button>
+        </div>
+      </div>
+
+      <aside class="ai-entry" aria-label="AI search preview" data-reveal>
+        <div class="entry-topline">
+          <span>{{ L('AI assistant', 'مساعد دكانة') }}</span>
+          <button type="button" (click)="openAiSearch()">{{ L('Open', 'افتح') }}</button>
+        </div>
+
+        <label class="search-entry">
+          <span aria-hidden="true">⌕</span>
+          <input
+            type="text"
+            [(ngModel)]="query"
+            (keydown.enter)="openAiSearch()"
+            [attr.aria-label]="L('Describe what you want to buy', 'اكتب اللي عايز تشتريه')"
+            [placeholder]="searchPlaceholder()"
+          />
+          <button type="button" (click)="openAiSearch()">
+            {{ L('Search', 'دور') }}
+          </button>
+        </label>
+
+        <div class="entry-hint">
+          {{ L('The full assistant handles images, exact budgets, nearby stock, and online fallbacks.', 'المساعد الكامل بيفهم الصور، الميزانية الدقيقة، المتاح قريب منك، وبدائل أونلاين لو محتاج.') }}
+        </div>
+
+        <div class="prompt-row" aria-label="Example searches">
+          <button type="button" *ngFor="let chip of promptChips" (click)="usePrompt(chip)">
+            {{ L(chip.en, chip.ar) }}
+          </button>
+        </div>
+
+        <div class="trend-row" *ngIf="trendingQueries().length" aria-label="Trending searches">
+          <span>{{ L('Trending', 'الأكثر بحثاً') }}</span>
+          <button type="button" *ngFor="let trend of trendingQueries()" (click)="useTrend(trend)">
+            {{ trend.query }}
+          </button>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="signal-band" aria-label="Dokkana proof points" data-reveal>
+    <div class="landing-wrap trust-strip">
+      <article *ngIf="storeCount() > 0">
+        <strong>{{ storeCount() }}</strong>
+        <span>{{ L(storeCount() === 1 ? 'store ready for discovery' : 'stores ready for discovery', 'محل جاهز للاكتشاف') }}</span>
+      </article>
+      <article *ngFor="let note of trustNotes">
+        <strong>{{ L(note.value, note.arValue) }}</strong>
+        <span>{{ L(note.enLabel, note.arLabel) }}</span>
+      </article>
+    </div>
+  </section>
+
+  <section id="experience" class="section journey-section" data-reveal>
+    <div class="landing-wrap">
+      <div class="section-heading">
+        <span>{{ L('How it works', 'إزاي دكانة بتشتغل') }}</span>
+        <h2>{{ L('One search can become a real store visit.', 'بحث واحد ممكن يوديك لمحل حقيقي.') }}</h2>
+      </div>
+
+      <div class="journey-grid">
+        <article *ngFor="let step of journeySteps">
+          <span>{{ step.number }}</span>
+          <h3>{{ L(step.enTitle, step.arTitle) }}</h3>
+          <p>{{ L(step.enBody, step.arBody) }}</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="trending" class="section discovery-section" data-reveal>
+    <div class="landing-wrap discovery-grid">
+      <div class="discovery-copy">
+        <span class="section-kicker">{{ L('Discovery preview', 'لمحة عن الاكتشاف') }}</span>
+        <h2>{{ L('Keep the landing page focused, send the heavy search to the assistant.', 'خلي الصفحة بسيطة، وسيب البحث التقيل للمساعد.') }}</h2>
+        <p>
+          {{ L('The home page now explains why Dokkana matters, then routes shoppers to AI Search, stores, or the catalog without repeating the full result screen.', 'الصفحة الرئيسية بتشرح قيمة دكانة، وبعدها توصلك للبحث الذكي أو المحلات أو الكتالوج من غير ما تكرر شاشة النتائج.') }}
+        </p>
+        <div class="split-actions">
+          <button type="button" class="btn-primary btn-on-light" (click)="openAiSearch()">
+            {{ L('Open AI Search', 'افتح البحث الذكي') }}
+          </button>
+          <button type="button" class="text-link" (click)="openShop()">
+            {{ L('Browse stores', 'تصفح المحلات') }}
+          </button>
+        </div>
+      </div>
+
+      <div class="preview-stack" aria-label="Featured products">
+        <div class="preview-loading" *ngIf="loadingPreview()">
+          {{ L('Loading local picks...', 'جار تحميل اختيارات محلية...') }}
+        </div>
+
+        <button
+          type="button"
+          class="preview-product sponsored"
+          *ngFor="let product of sponsoredPreview()"
+          (click)="openProduct(product)"
+        >
+          <img [src]="product.image" [alt]="product.name" loading="lazy" (error)="onPreviewImageError($event)" />
+          <span class="ad-label">{{ L('Sponsored', 'إعلان') }}</span>
+          <span class="preview-meta">{{ L(product.category, product.categoryAr || product.category) }}</span>
+          <strong>{{ L(product.name, product.nameAr || product.name) }}</strong>
+          <small>{{ L(product.store, product.storeAr || product.store) }}</small>
+          <b>{{ product.price | number:'1.0-0' }} {{ L('EGP', 'جنيه') }}</b>
+        </button>
+
+        <button
+          type="button"
+          class="preview-product"
+          *ngFor="let product of productPreview()"
+          (click)="openProduct(product)"
+        >
+          <img [src]="product.image" [alt]="product.name" loading="lazy" (error)="onPreviewImageError($event)" />
+          <span class="preview-meta">{{ L(product.category, product.categoryAr || product.category) }}</span>
+          <strong>{{ L(product.name, product.nameAr || product.name) }}</strong>
+          <small>{{ L(product.store, product.storeAr || product.store) }}</small>
+          <b>{{ product.price | number:'1.0-0' }} {{ L('EGP', 'جنيه') }}</b>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section merchant-section" data-reveal>
+    <div class="landing-wrap merchant-grid">
+      <div class="merchant-visual" aria-hidden="true">
+        <img src="/about.png" alt="" loading="lazy" />
+      </div>
+
+      <div class="merchant-copy">
+        <span class="section-kicker">{{ L('For store owners', 'لأصحاب المحلات') }}</span>
+        <h2>{{ L('Bring your local stock into the search journey.', 'دخل منتجات محلك في رحلة البحث.') }}</h2>
+        <p>
+          {{ L('Dokkana is not just a storefront. It helps products become findable by occasion, budget, color, and availability.', 'دكانة مش مجرد واجهة محل. بتخلي منتجاتك تظهر حسب المناسبة والميزانية واللون والتوفر.') }}
+        </p>
+
+        <div class="merchant-points">
+          <span>{{ L('Product catalog', 'كتالوج المنتجات') }}</span>
+          <span>{{ L('Store profile', 'صفحة المحل') }}</span>
+          <span>{{ L('Cart and orders', 'السلة والطلبات') }}</span>
+        </div>
+
+        <button type="button" class="btn-primary btn-on-light" (click)="openSignup()">
+          {{ L('Create store account', 'أنشئ حساب محل') }}
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="final-band" data-reveal>
+    <div class="landing-wrap final-grid">
+      <div>
+        <span>{{ L('Ready when the shopper is specific.', 'جاهزة لما طلب العميل يبقى واضح.') }}</span>
+        <h2>{{ L('Search by need, not by menu.', 'دور بالاحتياج، مش بالقائمة.') }}</h2>
+      </div>
+      <div class="final-actions">
+        <button type="button" class="btn-primary" (click)="openAiSearch()">
+          {{ L('Start searching', 'ابدأ البحث') }}
+        </button>
+        <button type="button" class="btn-glass" (click)="viewStores()">
+          {{ L('Explore stores', 'استكشف المحلات') }}
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div class="toast" *ngIf="toast()" role="status" aria-live="polite">
+    {{ toast() }}
+  </div>
+</main>
