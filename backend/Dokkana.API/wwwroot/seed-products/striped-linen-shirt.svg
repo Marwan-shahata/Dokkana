@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-label="Striped linen shirt">
-  <rect width="640" height="640" rx="48" fill="#ece8de"/>
-  <path d="M214 154l76-44 30 38 30-38 76 44 46 98-58 30v206H226V282l-58-30 46-98z" fill="#78a8bd"/>
-  <g stroke="#f4efe6" stroke-width="15"><path d="M250 150v338"/><path d="M314 150v338"/><path d="M378 150v338"/></g>
-  <path d="M290 110l30 38-34 48-26-58 30-28zm60 0l-30 38 34 48 26-58-30-28z" fill="#557f92"/>
-</svg>

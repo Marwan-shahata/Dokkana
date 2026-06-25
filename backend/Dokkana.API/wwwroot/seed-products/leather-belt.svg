@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-label="Leather belt">
-  <rect width="640" height="640" rx="48" fill="#eee3d5"/>
-  <path d="M116 286h328v68H116z" fill="#744b2d"/>
-  <rect x="420" y="260" width="112" height="120" rx="16" fill="none" stroke="#b99058" stroke-width="24"/>
-  <path d="M444 320h70" stroke="#b99058" stroke-width="20" stroke-linecap="round"/>
-</svg>

@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-label="Leather jacket">
-  <rect width="640" height="640" rx="48" fill="#ece4d8"/>
-  <path d="M212 148l78-40 30 42 30-42 78 40 52 112-64 32v214H224V292l-64-32 52-112z" fill="#252321"/>
-  <path d="M320 152v354M250 244h48M342 244h48" stroke="#625a54" stroke-width="12" stroke-linecap="round"/>
-  <path d="M290 108l30 42-56 104-16-120 42-26zm60 0l-30 42 56 104 16-120-42-26z" fill="#1a1918"/>
-</svg>

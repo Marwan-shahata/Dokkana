@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-label="Backpack">
-  <rect width="640" height="640" rx="48" fill="#e9e2d7"/>
-  <path d="M214 210c0-72 48-118 106-118s106 46 106 118v292H214V210z" fill="#6b6f73"/>
-  <path d="M246 336h148v108H246z" fill="#4f555a"/>
-  <path d="M250 214c22-58 118-58 140 0" fill="none" stroke="#8d9297" stroke-width="20" stroke-linecap="round"/>
-</svg>

@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-label="Floral maxi dress">
-  <rect width="640" height="640" rx="48" fill="#f6eee9"/>
-  <path d="M268 92h104l-18 82 74 340H212l74-340-18-82z" fill="#b83c44"/>
-  <path d="M286 100c22 42 46 42 68 0l26 86H260l26-86z" fill="#f7d7cf"/>
-  <g fill="#f2b8a8">
-    <circle cx="286" cy="250" r="18"/><circle cx="348" cy="318" r="15"/><circle cx="302" cy="406" r="17"/><circle cx="374" cy="450" r="14"/>
-  </g>
-</svg>

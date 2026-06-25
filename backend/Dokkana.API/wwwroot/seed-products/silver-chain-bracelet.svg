@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-label="Silver chain bracelet">
-  <rect width="640" height="640" rx="48" fill="#ebe4d8"/>
-  <g fill="none" stroke="#9da5aa" stroke-width="28" stroke-linecap="round">
-    <ellipse cx="246" cy="320" rx="70" ry="48" transform="rotate(-24 246 320)"/>
-    <ellipse cx="320" cy="320" rx="70" ry="48" transform="rotate(24 320 320)"/>
-    <ellipse cx="394" cy="320" rx="70" ry="48" transform="rotate(-24 394 320)"/>
-  </g>
-</svg>
